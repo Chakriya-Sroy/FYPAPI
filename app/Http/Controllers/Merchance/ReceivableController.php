@@ -46,7 +46,7 @@ class ReceivableController extends Controller
         'remaining' => $request->amount,
         'payment_term' => $request->payment_term,
         'status' => $request->status,
-        'date' => $request->date,
+        'date' => now(),
         'dueDate' => $request->dueDate,
         'attachment' => $request->attachment,
         'remark' => $request->remark,
@@ -57,9 +57,14 @@ class ReceivableController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Receivable $receivable)
+    public function show(Customer $customer,Receivable $receivable)
     {
         //
+        if(Auth::user()->id!==$customer->user_id){
+            return $this->error('','You are not authorized to delete the resource');
+        }
+        return new ReceivableResource($receivable);
+
     }
 
     /**
@@ -81,7 +86,7 @@ class ReceivableController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Customer $customer,Receivable $receivable)
+    public function destroy(Receivable $receivable,Customer $customer)
     {
         // //check if the user is authorize
         if(Auth::user()->id!== $customer->user_id){

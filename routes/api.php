@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Merchance\CustomerController;
 use App\Http\Controllers\Merchance\ReceivableController;
+use App\Http\Controllers\Merchance\ReceivablePaymentController;
 use App\Http\Controllers\Merchance\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -42,15 +43,15 @@ Route::middleware(['auth:sanctum'])->group(function(){
         Route::delete('/delete/{customer}',[CustomerController::class,'destroy'])->name("customer.delete");
         Route::prefix('{customer}/receivable')->group(function() {
             Route::get('/list', [ReceivableController::class,'index'])->name("customer.receivable.list");
-            Route::post('/create', [ReceivableController::class,'store'])->name("customer.receivable.create");
+            Route::post('/create',[ReceivableController::class,'store'])->name("customer.receivable.create");
             Route::patch('/update/{receivable}', [ReceivableController::class,'update'])->name("customer.receivable.update");
             Route::get('/view/{receivable}', [ReceivableController::class,'show'])->name("customer.receivable.view");
             Route::delete('/delete/{receivable}', [ReceivableController::class,'destroy'])->name("customer.receivable.delete");
-            // Route::prefix('/{receivable}/payments')->group(function() {
-            //     Route::post('/', [ReceivablePaymentController::class, 'store'])->name('receivables.payments.store');
-            //     Route::get('/{payment}', [ReceivablePaymentController::class, 'show'])->name('receivables.payments.show');
-            // });
         });
-      
+        Route::prefix('receivable/{receivable}/payment')->group(function() {
+            Route::post('/create', [ReceivablePaymentController::class, 'store'])->name('receivables.payments.store');
+            Route::get('/list', [ReceivablePaymentController::class, 'show'])->name('receivables.payments.show');
+        }); 
     });    
+  //  Route::post('/collector/invitation',);
 });

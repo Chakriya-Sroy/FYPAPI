@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('receivables_payments', function (Blueprint $table) {
+        Schema::create('receivable_payments', function (Blueprint $table) {
             $table->id();
             $table->integer('receivable_id')->unsigned();
             $table->foreign('receivable_id')->references('id')->on('receivables')->onDelete('cascade'); // if the customer is deleted, all the receivable also gone

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use DateTime;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreReceivablePayment extends FormRequest
@@ -11,7 +12,7 @@ class StoreReceivablePayment extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +23,9 @@ class StoreReceivablePayment extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'amount'=>'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
+            'remark'=>'sometimes',
+            'attachment'=>'sometimes',
         ];
     }
 }

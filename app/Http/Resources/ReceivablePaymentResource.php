@@ -14,6 +14,24 @@ class ReceivablePaymentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id'=>(string)$this->id,
+            'attributes'=>[
+              'amount'=>$this->amount,
+              'remark'=>$this->remark,
+              'attachment'=>$this->attachment,
+              'created_at'=>$this->created_at,
+              'updated_at'=>$this->updated_at
+              
+            ],
+            'relationships'=>[
+              "receivable"=>[
+                'id'=>(string)$this->receivable->id,
+                'amount'=>$this->receivable->amount,
+                'remaining'=>$this->receivable->remaining,
+                'status'=>$this->receivable->status
+              ]
+            ]
+        ];
     }
 }
