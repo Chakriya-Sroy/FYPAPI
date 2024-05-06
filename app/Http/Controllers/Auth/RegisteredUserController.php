@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserandRole;
 use App\Traits\HttpResponse;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
@@ -39,12 +40,8 @@ class RegisteredUserController extends Controller
 
         // Auth::login($user);
         $token =$user->createToken('api-token');
-
-       return $this->success(
-        [
-            'user'=>$user,
-           'token'=>$token
-        ]
-       );
+        // update the role and user table
+        $userandrole=UserandRole::create(['user_id'=>$user->id,'role_id'=>1]);
+       return $this->success(["user"=>$user,"role"=>$userandrole,"token"=>$token]);
     }
 }

@@ -15,24 +15,24 @@ class ReceivableResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'=>(string)$this->id,
-            'attributes'=>[
-              'amount'=>$this->amount,
-              'remaining'=>$this->remaining,
-              'payment_term'=>$this->payment_term,
-              'status'=>$this->status,
-              'date'=>$this->date,
-              'dueDate'=>$this->dueDate,
-              'remark'=>$this->remark,
-              'attachment'=>$this->attachment,
-              'crated_at'=>$this->crated_at,
-              'updated_at'=>$this->updated_at
-              
+            'id' => (string)$this->id,
+            'attributes' => [
+                'title'=>$this->title,
+                'amount' => $this->amount,
+                'remaining' => $this->remaining,
+                'payment_term' => $this->payment_term,
+                'status' => $this->status,
+                'date' => $this->date,
+                'dueDate' => $this->dueDate,
+                'remark' => $this->remark,
+                'attachment' => $this->attachment,
+                'crated_at' => $this->crated_at,
+                'updated_at' => $this->updated_at
+
             ],
-            'relationships'=>[
-                'id'=>(string)$this->customer->id,
-                'name'=>$this->customer->fullname,
-                'email'=>$this->customer->email
+            'relationships' => [
+                'payment'=>$this->payments,
+                'customer' => $this->customer,
             ]
         ];
     }

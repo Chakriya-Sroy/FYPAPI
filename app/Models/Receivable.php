@@ -11,7 +11,7 @@ class Receivable extends Model
 {
     use HasFactory;
     protected $table='receivables';
-    protected $fillable=['customer_id','amount','remaining','date','dueDate','status','payment_term','remark','attachment'];
+    protected $fillable=['title','customer_id','amount','remaining','date','dueDate','status','payment_term','remark','attachment'];
 
     public function customer():BelongsTo{
         return $this->belongsTo(Customer::class);

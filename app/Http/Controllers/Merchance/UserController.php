@@ -20,6 +20,8 @@ class UserController extends Controller
     public function index()
     {
         //
+        $user =Auth::user();
+        return UserResource::collection(User::where("id",$user->id)->get());
     }
 
     /**
@@ -46,7 +48,7 @@ class UserController extends Controller
         if(Auth::user()->id !== $user->id){
             return $this->error('',"You not authorized to view the resource");
         }
-         return UserResource::collection(User::where("id",Auth::user()->id)->get());
+        return UserResource::collection(User::where("id",Auth::user()->id)->get());
     }
 
     /**

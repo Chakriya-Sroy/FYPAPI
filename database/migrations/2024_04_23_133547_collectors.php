@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('collectors', function (Blueprint $table) {
+         Schema::create('collectors', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("user_id")->constrained("users");
-            $table->foreignId("role_id")->constrained("roles"); 
-            $table->String("name");
-            $table->String("email");
-            $table->String("remark");
+            $table->foreign('user_id')->references('id')->on('user')->onDelete('cascade'); // user_id
+            $table->integer('user_id')->unsigned();
+            $table->foreign('collector_id')->references('id')->on('user')->onDelete('cascade'); // collector_id
+            $table->integer('collector_id')->unsigned();
             $table->timestamps();
         });
     }
@@ -27,6 +26,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        //
         Schema::dropIfExists('collectors');
     }
 };

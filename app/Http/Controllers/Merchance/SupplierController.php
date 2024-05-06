@@ -3,16 +3,26 @@
 namespace App\Http\Controllers\Merchance;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreSupplierRequest;
+use App\Http\Resources\SupplierResource;
+use App\Models\Supplier;
+use App\Traits\HttpResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SupplierController extends Controller
 {
+    use HttpResponse;
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         //
+        $user =Auth::user();
+        $supplier =$user->suppliers;
+        return $this->success(SupplierResource::collection($supplier));
+       
     }
 
     /**
@@ -26,17 +36,41 @@ class SupplierController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreSupplierRequest $request)
     {
-        //
+
+        // $request->validated($request->all());
+        $supplier=Supplier::create(
+            [
+                'fullname' => $request->fullname,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'remark' => $request->remark,
+                "user_id"=>Auth::user()->id,
+            ]
+        );
+        return $this->success(new SupplierResource($supplier),'New Supplier create succesfully');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(String $id)
     {
-        //
+        $supplier = Supplier::find($id);
+
+        if (!$supplier) {
+            return $this->error("", "The requested resource does not exist.");
+        }
+    
+        // Step 1: Check if the user is authorized to view the resource
+        if (Auth::id() == $supplier->user_id) {
+            return new SupplierResource($supplier);
+        }
+    
+        // Step 2: Return an error message indicating unauthorized access
+        return $this->error('', "You are not authorized to view this resource.");
     }
 
     /**
@@ -50,9 +84,23 @@ class SupplierController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(StoreSupplierRequest $request, String $id)
     {
-        //
+        // check if the resource is available or not
+        $supplier =Supplier::find($id);
+        if(!$supplier){
+            return $this->error('',"The resource does not exist");
+        }
+        $request->validated($request->all());
+        if (Auth::user()->id !== $supplier->user_id) {
+            return $this->error('', 'You are not authorized to view this resource', 401);
+        }
+        $supplier->update($request->all());
+        return $this->success(
+            new SupplierResource($supplier),
+            'Supplier Update Succesfully',
+            201
+        );
     }
 
     /**
@@ -60,6 +108,27 @@ class SupplierController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $supplier =Supplier::find($id);
+        if(!$supplier){
+            return $this->error('','The resource does not exist');
+        }
+        if($supplier->user_id !== Auth::user()->id){
+            return $this->error('',"You not authorize to delete the resource");
+        }
+        $supplier->delete();
+        return $this->success("","The supplier delete successfully");
+    }
+
+    public function transaction(String $id){
+        
+        $supplier =Supplier::find($id);
+        if(!$supplier){
+            return $this->error('','The resource does not exist');
+        }
+        if($supplier->user_id !== Auth::user()->id){
+            return $this->error('',"You not authorize to view the resource");
+        }
+        $transaction =$supplier->transactions;
+        return $this->success($transaction);
     }
 }

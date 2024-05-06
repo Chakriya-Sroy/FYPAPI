@@ -20,7 +20,7 @@ class CollecterController extends Controller
      */
     public function create()
     {
-        //
+        // view customer under their controll
     }
 
     /**

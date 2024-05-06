@@ -11,6 +11,7 @@ class ReceivablePayment extends Model
     use HasFactory;
     protected $table="receivable_payments";
     protected $fillable=["amount","user_id","receivable_id","attachment","remark","date"];
+    
     public function receivable():BelongsTo{
         return $this->belongsTo(Receivable::class);
     }

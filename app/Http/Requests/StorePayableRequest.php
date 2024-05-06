@@ -2,10 +2,9 @@
 
 namespace App\Http\Requests;
 
-use DateTime;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreReceivablePayment extends FormRequest
+class StorePayableRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,10 +22,13 @@ class StoreReceivablePayment extends FormRequest
     public function rules(): array
     {
         return [
-            'receivable_id'=>'required|exists:receivables,id',
-            'amount'=>'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
-            'remark'=>'sometimes',
+            'title'=>'required|string|max:255',
+            'supplier_id'=>'required',
+            'amount' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
+            'payment_term'=>'required|in:equaltodueDate,7,15',
+            'dueDate' => 'required|date',
             'attachment'=>'sometimes',
+            'remark'=>'sometimes'
         ];
     }
 }

@@ -11,14 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('suppliers', function (Blueprint $table) {
+        Schema::create('roles',function(Blueprint $table){
             $table->id();
-            $table->foreignId("user_id")->constrained("users"); 
-            $table->String("fullname");
-            $table->String("phone");
-            $table->String("email");
-            $table->String("address");
-            $table->String("remark");
+            $table->String("name");
             $table->timestamps();
         });
     }
@@ -28,6 +23,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('suppliers');
+        //
+        Schema::dropIfExists('roles');
     }
 };

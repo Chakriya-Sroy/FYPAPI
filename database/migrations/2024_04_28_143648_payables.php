@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('receivables', function (Blueprint $table) {
+        //
+        Schema::create('payables', function (Blueprint $table) {
             $table->id();
-            $table->integer('customer_id')->unsigned();
-            $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade'); // if the customer is deleted, all the receivable also gone
+            $table->integer('supplier_id')->unsigned();
+            $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('cascade'); // if the customer is deleted, all the receivable also gone
+            $table->String('title');
             $table->double("amount");
             $table->double("remaining");
             $table->String("status");
@@ -32,6 +34,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('receivables');
+        //
+        Schema::dropIfExists('payables');
     }
 };
