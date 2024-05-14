@@ -15,52 +15,49 @@ class CustomerResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => (string)$this->id,
             'attributes' => [
+                'id' => (string)$this->id,
                 'name' => $this->fullname,
                 'email' => $this->email,
                 'phone' => $this->phone,
                 'gender' => $this->gender,
                 'address' => $this->address,
                 'remark' => $this->remark,
+                "total_receivables" => $this->receivables->count(),
+                'total_receivable_amount' => $this->totalOutstanding() == null ? 0 : $this->totalOutstanding(),
+                'total_remaning' => $this->totalRemaining() == null ?  0 : $this->totalRemaining(),
                 'crated_at' => $this->crated_at,
                 'updated_at' => $this->updated_at
 
             ],
             'relationships' => [
-                "owner" => [
-                    'id' => (string)$this->user->id,
-                    'name' => $this->user->name,
-                    'email' => $this->user->email
-                ],
-               "receivables"=>[
-                "receivable"=>$this->receivables,
-                "total_receivable" => $this->receivables->count(),
-                "total_receivable_amount"=>$this->totalOutstanding(),
-                "total_remaining"=>$this->totalRemaining(),
-               
-               ]
+                'id' => (string)$this->user->id,
+                'name' => $this->user->name,
+                'email' => $this->user->email
             ]
         ];
     }
-    public function totalRemaining(){
-        $totalRemaining=0;
-        $receivables=$this->receivables;
-        foreach($receivables as $receivable){
-            return $totalRemaining +=$receivable->remaining;
+    public function totalRemaining()
+    {
+        $totalRemaining = 0;
+        $receivables = $this->receivables;
+        foreach ($receivables as $receivable) {
+            return $totalRemaining += $receivable->remaining;
         }
     }
-    public function totalOutstanding(){
-        $totalOutstanding=0;
-        $receivables=$this->receivables;
-        foreach($receivables as $receivable){
-            return $totalOutstanding +=$receivable->amount;
+    public function totalOutstanding()
+    {
+        $totalOutstanding = 0;
+        $receivables = $this->receivables;
+        foreach ($receivables as $receivable) {
+            return $totalOutstanding += $receivable->amount;
         }
     }
-    public function receivables(){
-        $receivables=$this->receivables;
-        foreach ($receivables as $receivable){
-            return ["id"=>[$this->$receivable]];
+    public function receivables()
+    {
+        $receivables = $this->receivables;
+        foreach ($receivables as $receivable) {
+            return ["id" => [$this->$receivable]];
         }
     }
 }

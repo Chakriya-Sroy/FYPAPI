@@ -24,23 +24,6 @@ class CustomerController extends Controller
      */
     public function index()
     {
-       // Show all the customer that they have with assign customer
-        // $collectorInfo = $this->hasCollectorRole();
-        // $collectorId = $collectorInfo["collectorId"];
-        // $isCollector = $collectorInfo["isCollector"];
-        // $assignCustomer = [];
-        // if ($isCollector) {
-        //     $collector = User::findorfail($collectorId);
-        //     // Step 2 : Check if there is customer assign to user or not
-        //     $assign_customer = CustomerAndCollector::where('collector_id', $collector->id)->get();
-        //     if ($assign_customer->count() == 0) {
-        //         return response()->json(["You haven't got assign to any customer yet"]);
-        //     }
-        //     foreach ($assign_customer as $customer) {
-        //         $customer = Customer::findorfail($customer->customer_id);
-        //         $assignCustomer[] = $customer;
-        //     }
-        // }
         $user=Auth::user();
         $assign_customer=[];
         $assignCustomer =CustomerAndCollector::where('collector_id',$user->id)->get();
@@ -56,8 +39,8 @@ class CustomerController extends Controller
         
         return $this->success(
             [
-                "Customer" => $user->customers,
-                "Assign Customer" => $assign_customer
+                "Customer" => CustomerResource::collection($user->customers),
+                "Assign Customer" =>CustomerResource::collection( $assign_customer)
             ],
             '',
         );
@@ -85,7 +68,7 @@ class CustomerController extends Controller
                 return $this->error("","Opp, You already exceed the allow customers,Please subscription to Premium plan");
             }
         }
-        if($subscription->active ==false){
+        if($subscription && $subscription->active ==false){
             return $this->error("","Please renew the plan to enjoy unlimited");
         }
         $customer = Customer::create([
@@ -97,7 +80,7 @@ class CustomerController extends Controller
             'remark' => $request->remark,
             'user_id' => Auth::user()->id
         ]);
-        return $this->success(new CustomerResource($customer), "New Customer Create Successfully", 201);
+        return $this->success(new CustomerResource($customer), "New Customer Create Successfully");
     }
 
     /**
@@ -157,7 +140,7 @@ class CustomerController extends Controller
         return $this->success(
             new CustomerResource($customer),
             'Customer Update Succesfully',
-            201
+            200
         );
     }
 

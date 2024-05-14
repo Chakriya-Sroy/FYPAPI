@@ -22,6 +22,7 @@ class UserResource extends JsonResource
                 'id'=>$this->id,
                 'name' => $this->name,
                 'email' => $this->email,
+                'has_collector_role' => $this->hasCollectorRole(),
                 'created_at' => $this->created_at,
                 'updated_at' => $this->updated
             ],
@@ -35,14 +36,13 @@ class UserResource extends JsonResource
             'suppliers'=>$this->suppliers->count(),
             'payables'=>[
                 'total_payables'=>$this->payables->count(),
-                'total_oustanding'=>$this->totalPayableOutstanding(),
+                'total_outstanding'=>$this->totalPayableOutstanding(),
                 'total_remaining'=>$this->totalPayableRemining()
             ],
             'collector' => [
                 'has_collector'=>$this->hasCollector(),
                 'collector_info'=>$this->getCollector()
             ],
-            'has_collector_role' => $this->hasCollectorRole(),
             'subscription'=> !$this->subscription ? ["type"=>"free"] :[
                 "type"=> $this->subscription->type,
                 "start"=> $this->subscription->start,

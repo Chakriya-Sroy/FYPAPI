@@ -15,8 +15,10 @@ class ReceivableResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => (string)$this->id,
             'attributes' => [
+                'id' => (string)$this->id,
+                'customerId'=>$this->customer->id,
+                'customerName'=>$this->customer->fullname,
                 'title'=>$this->title,
                 'amount' => $this->amount,
                 'remaining' => $this->remaining,
@@ -26,7 +28,7 @@ class ReceivableResource extends JsonResource
                 'dueDate' => $this->dueDate,
                 'remark' => $this->remark,
                 'attachment' => $this->attachment,
-                'crated_at' => $this->crated_at,
+                'created_at' => $this->created_at,
                 'updated_at' => $this->updated_at
 
             ],

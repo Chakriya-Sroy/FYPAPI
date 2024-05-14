@@ -49,6 +49,10 @@ Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
 Route::middleware(['auth:sanctum'])->group(function(){
     //User Route
     Route::get("user",[UserController::class,'index'])->name('user');
+    Route::get('/user/receivables/upcoming',[ReceivableController::class,'upcoming'])->name('upcoming.receivable');
+    Route::get('/user/receivables/overdue',[ReceivableController::class,'overdue'])->name('upcoming.receivable');
+    Route::get('/user/payables/upcoming',[PayableController::class,'upcoming'])->name('upcoming.receivable');
+    Route::get('/user/payables/overdue',[PayableController::class,'overdue'])->name('upcoming.receivable');
     //customer Route
     Route::prefix('customer')->group(function(){
         Route::get('/list',[CustomerController::class,'index'])->name("customer.list");
@@ -64,6 +68,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
             Route::patch('/update/{id}', [ReceivableController::class,'update'])->name("customer.receivable.update");
             Route::get('/view/{id}', [ReceivableController::class,'show'])->name("customer.receivable.view");
             Route::delete('/delete/{id}', [ReceivableController::class,'destroy'])->name("customer.receivable.delete");
+           
         });
         Route::prefix('receivable/payment')->group(function() {
             Route::post('/create', [ReceivablePaymentController::class, 'store'])->name('receivables.payments.store');
@@ -99,5 +104,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
    // subscription plan
    Route::post('/subscription',[SubscriptionController::class,'store'])->name('subscription');
+   Route::patch('/subscription/update',[SubscriptionController::class,'update'])->name('subscription.update');
+
 
 });

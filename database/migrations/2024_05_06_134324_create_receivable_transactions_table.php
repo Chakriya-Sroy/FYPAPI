@@ -19,7 +19,7 @@ return new class extends Migration
             $table->unsignedBigInteger('receivable_id')->nullable();
             $table->foreign('receivable_id')->references('id')->on('receivables')->onDelete('cascade');
             $table->unsignedBigInteger('payment_id')->nullable();
-            $table->foreign('payment_id')->references('id')->on('payments')->onDelete('cascade');
+            $table->foreign('payment_id')->references('id')->on('receivable_payments')->onDelete('cascade');
             $table->decimal('amount', 10, 2);
             $table->dateTime('transaction_date');
             $table->timestamps();

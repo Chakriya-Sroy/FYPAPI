@@ -99,7 +99,7 @@ class SupplierController extends Controller
         return $this->success(
             new SupplierResource($supplier),
             'Supplier Update Succesfully',
-            201
+            200
         );
     }
 

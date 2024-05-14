@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('payable_payments', function (Blueprint $table) {
             $table->id();
             $table->integer('payable_id')->unsigned();
-            $table->foreign('payable_id')->references('id')->on('receivables')->onDelete('cascade'); // if the customer is deleted, all the receivable also gone
+            $table->foreign('payable_id')->references('id')->on('payables')->onDelete('cascade'); // if the customer is deleted, all the receivable also gone
             $table->double("amount");
             $table->dateTime("date");
             $table->String("remark")->nullable();

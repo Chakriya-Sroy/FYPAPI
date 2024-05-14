@@ -67,10 +67,10 @@ class ReceivablePaymentController extends Controller
         //step 4 : check if the amount that being input is exceed the remaining of receivable or not
 
         if($request->amount > $receivable->remaining){
-            return $this->error('',"The amount can't be exceed the remaining",201);
+            return $this->error('',"The amount can't be exceed the remaining",200);
         }
         elseif($request->amount ==0){
-            return $this->error('',"The amount can't be zero",201);
+            return $this->error('',"The amount can't be zero",200);
         }
         $payment=ReceivablePayment::create([
               'amount'=>$request->amount,

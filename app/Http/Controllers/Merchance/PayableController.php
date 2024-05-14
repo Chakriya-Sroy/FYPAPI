@@ -9,6 +9,7 @@ use App\Models\Payable;
 use App\Models\PayableTransaction;
 use App\Models\Supplier;
 use App\Traits\HttpResponse;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -24,9 +25,11 @@ class PayableController extends Controller
         $user =Auth::user();
         $payables=$user->payables;
         if($payables->count()==0){
-            return "There no resource available yet";
+            return response()->json("There no resource available yet",200);
         }
-        return $payables;
+        //return $this->success(['attributes'=>$payables]);
+       //return $payables;
+       return $this->success(PayableResource::collection($payables));
     }
 
     /**
@@ -78,14 +81,13 @@ class PayableController extends Controller
     public function show(string $id)
     {
         //
-        $supplier =Supplier::find($id);
-        if($supplier){
+        $payable=Payable::find($id);
+        if(!$payable){
             return $this->error('','There no resource exist');
         }
-        if($supplier->user_id !== Auth::user()->id){
+        if($payable->supplier->user_id !== Auth::user()->id){
             return $this->error('','You not authorized to view this resource');
         }
-        $payable=Payable::find($id);
         return new PayableResource($payable);
     }
 
@@ -118,6 +120,85 @@ class PayableController extends Controller
             return $this->error('','You not authorized to delete this resource');
         }
         $payable=Payable::find($id)->delete();
-        return response()->json(null,201);
+        return response()->json(null,200);
+    }
+    
+    public function upcoming()
+    {
+        $user = Auth::user();
+        $payables = $user->payables;
+        $currentDate = Carbon::now('UTC');
+        $upcomingPayables = [];
+        foreach ($payables as $payable) {
+            // Check if the receivable's payment term matches the due date
+            if ($payable->status != "fullypaid") {
+                if ($payable->payment_term === "equaltodueDate") {
+                    $newDueDate = Carbon::parse($payable->dueDate, 'UTC');
+                    if ($newDueDate->isAfter($currentDate)) {
+                        $daysRemaining = $newDueDate->diffInDays($currentDate);
+                        if ($daysRemaining === 0 || $daysRemaining === 1) {
+                            $upcomingPayables[] = [
+                                'id' => $payable->id,
+                                'customer' => $payable->customer->fullname,
+                                'remaining' => $payable->remaining,
+                                'status' => $payable->status,
+                                'upcoming' => $daysRemaining == 0 ? "Due Today" : "Due Tomorrow"
+                            ];
+                        }
+                    }
+                } else {
+                    $newDueDate = Carbon::parse($payable->dueDate, 'UTC');
+                    $daysRemaining = $newDueDate->diffInDays($currentDate);
+                    if ($newDueDate->isAfter($currentDate)) {
+                        $upcomingPayables[] = [
+                            'id' => $payable->id,
+                            'customer' => $payable->customer->fullname,
+                            'remaining' => $payable->remaining,
+                            'status' => $payable->status,
+                            'upcoming' => "Due in $daysRemaining days"
+                        ];
+                    }
+                }
+            }
+        }
+        return response()->json(['upcomingPayables' => $upcomingPayables], 200);
+    }
+    public function overdue()
+    {
+        $user = Auth::user();
+        $payables = $user->payables;
+        $currentDate = Carbon::now('UTC');
+        $overDuePayables = [];
+        foreach ($payables as $payable) {
+            // Check if the receivable's payment term matches the due date
+            if ($payable->status != "fullypaid") {
+                if ($payable->payment_term === "equaltodueDate") {
+                    $newDueDate = Carbon::parse($payable->dueDate, 'UTC');
+                    if ($newDueDate->isBefore($currentDate)) {
+                        $daysRemaining = $newDueDate->diffInDays($currentDate);
+                        $overDuePayables[] = [
+                            'id' => $payable->id,
+                            'customer' => $payable->customer->fullname,
+                            'remaining' => $payable->remaining,
+                            'status' => $payable->status,
+                            'overdue' => $daysRemaining == 0 ? "Due yesterday" : "Over due".$daysRemaining."days ago"
+                        ];
+                    }
+                } else {
+                    $newDueDate = Carbon::parse($payable->dueDate, 'UTC');
+                    $daysRemaining = $newDueDate->diffInDays($currentDate);
+                    if ($newDueDate->isBefore($currentDate)) {
+                        $overDuePayables[] = [
+                            'id' => $payable->id,
+                            'customer' => $payable->customer->fullname,
+                            'remaining' => $payable->remaining,
+                            'status' => $payable->status,
+                            'overdue' => $daysRemaining == 0 ? "Due yesterday" : "Over due".$daysRemaining."days ago"
+                        ];
+                    }
+                }
+            }
+        }
+        return response()->json(['overDuePayables' => $overDuePayables], 200);
     }
 }

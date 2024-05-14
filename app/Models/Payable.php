@@ -17,6 +17,6 @@ class Payable extends Model
         return $this->belongsTo(Supplier::class);
     }
     public function payments():HasMany{
-        return $this->hasMany(Payable::class);
+        return $this->hasMany(PayablePayment::class);
     }
 }
