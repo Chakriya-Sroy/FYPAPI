@@ -27,6 +27,7 @@ class StoreReceivableRequest extends FormRequest
             'amount' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
             'payment_term'=>'required|in:equaltodueDate,7,15',
             'status' =>'required|in:fullypaid,partiallypaid,outstanding',
+            'date'=>'required|date',
             'dueDate' => 'required|date',
             'attachment'=>'sometimes',
             'remark'=>'sometimes'

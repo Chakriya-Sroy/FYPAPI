@@ -60,7 +60,7 @@ class PayableController extends Controller
             'remaining' => $request->amount,
             'payment_term' => $request->payment_term,
             'status' => "outstanding",
-            'date' => now(),
+            'date' => $request->date,
             'dueDate' => $request->dueDate,
             'attachment' => $request->attachment,
             'remark' => $request->remark,
@@ -139,7 +139,7 @@ class PayableController extends Controller
                         if ($daysRemaining === 0 || $daysRemaining === 1) {
                             $upcomingPayables[] = [
                                 'id' => $payable->id,
-                                'customer' => $payable->customer->fullname,
+                                'supplier' => $payable->supplier->fullname,
                                 'remaining' => $payable->remaining,
                                 'status' => $payable->status,
                                 'upcoming' => $daysRemaining == 0 ? "Due Today" : "Due Tomorrow"
@@ -152,7 +152,7 @@ class PayableController extends Controller
                     if ($newDueDate->isAfter($currentDate)) {
                         $upcomingPayables[] = [
                             'id' => $payable->id,
-                            'customer' => $payable->customer->fullname,
+                            'supplier' => $payable->supplier->fullname,
                             'remaining' => $payable->remaining,
                             'status' => $payable->status,
                             'upcoming' => "Due in $daysRemaining days"
@@ -178,7 +178,7 @@ class PayableController extends Controller
                         $daysRemaining = $newDueDate->diffInDays($currentDate);
                         $overDuePayables[] = [
                             'id' => $payable->id,
-                            'customer' => $payable->customer->fullname,
+                            'supplier' => $payable->supplier->fullname,
                             'remaining' => $payable->remaining,
                             'status' => $payable->status,
                             'overdue' => $daysRemaining == 0 ? "Due yesterday" : "Over due".$daysRemaining."days ago"
@@ -190,7 +190,7 @@ class PayableController extends Controller
                     if ($newDueDate->isBefore($currentDate)) {
                         $overDuePayables[] = [
                             'id' => $payable->id,
-                            'customer' => $payable->customer->fullname,
+                            'supplier' => $payable->supplier->fullname,
                             'remaining' => $payable->remaining,
                             'status' => $payable->status,
                             'overdue' => $daysRemaining == 0 ? "Due yesterday" : "Over due".$daysRemaining."days ago"

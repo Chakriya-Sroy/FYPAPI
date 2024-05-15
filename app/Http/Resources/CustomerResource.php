@@ -30,6 +30,7 @@ class CustomerResource extends JsonResource
                 'updated_at' => $this->updated_at
 
             ],
+            'receivables'=>$this->receivables,
             'relationships' => [
                 'id' => (string)$this->user->id,
                 'name' => $this->user->name,
@@ -42,22 +43,25 @@ class CustomerResource extends JsonResource
         $totalRemaining = 0;
         $receivables = $this->receivables;
         foreach ($receivables as $receivable) {
-            return $totalRemaining += $receivable->remaining;
+            $totalRemaining += $receivable->remaining;
         }
+        return $totalRemaining;
+
     }
     public function totalOutstanding()
     {
         $totalOutstanding = 0;
         $receivables = $this->receivables;
         foreach ($receivables as $receivable) {
-            return $totalOutstanding += $receivable->amount;
+           $totalOutstanding += $receivable->amount;
         }
+        return $totalOutstanding;
     }
-    public function receivables()
-    {
-        $receivables = $this->receivables;
-        foreach ($receivables as $receivable) {
-            return ["id" => [$this->$receivable]];
-        }
-    }
+    // public function receivables()
+    // {
+    //     $receivables = $this->receivables;
+    //     foreach ($receivables as $receivable) {
+    //         return ["id" => [$this->$receivable]];
+    //     }
+    // }
 }

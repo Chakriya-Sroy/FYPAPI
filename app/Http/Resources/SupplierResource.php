@@ -29,6 +29,7 @@ class SupplierResource extends JsonResource
               'updated_at'=>$this->updated_at
               
             ],
+            'payables'=>$this->payables,
             'relationships'=>[
                 'id'=>(string)$this->user->id,
                 'name'=>$this->user->name,
@@ -40,20 +41,22 @@ class SupplierResource extends JsonResource
         $totalRemaining=0;
         $payables=$this->payables;
         foreach($payables as $payable){
-            return $totalRemaining +=$payable->remaining;
+             $totalRemaining +=$payable->remaining;
         }
+        return $totalRemaining;
     }
     public function totalOutstanding(){
         $totalOutstanding=0;
         $payables=$this->payables;
         foreach($payables as $payable){
-            return $totalOutstanding +=$payable->amount;
+             $totalOutstanding +=$payable->amount;
         }
+        return $totalOutstanding;
     }
-    public function payables(){
-        $payables=$this->payables;
-        foreach ($payables as $payable){
-            return ["id"=>[$this->$payable]];
-        }
-    }
+    // public function payables(){
+    //     $payables=$this->payables;
+    //     foreach ($payables as $payable){
+    //         return ["id"=>[$this->$payable]];
+    //     }
+    // }
 }

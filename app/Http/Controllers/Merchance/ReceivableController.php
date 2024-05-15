@@ -78,7 +78,7 @@ class ReceivableController extends Controller
             'remaining' => $request->amount,
             'payment_term' => $request->payment_term,
             'status' => "oustanding",
-            'date' => now(),
+            'date' => $request->date,
             'dueDate' => $request->dueDate,
             'attachment' => $request->attachment,
             'remark' => $request->remark,

@@ -44,17 +44,23 @@ class ReceivablePaymentController extends Controller
         $notification="";
         // step 1 : check if the receivable exist or not
         $receivable=Receivable::find($request->receivable_id);
+
         $user=Auth::user();
 
         $isCollector=CustomerAndCollector::where('collector_id',$user->id)
                                         ->where('customer_id',$receivable->customer_id)
                                         ->get();
+
         $hasCollecctor = Collector::where('user_id',$user->id)->get();
+
         if(!$receivable){
             return $this->error('',"There no available resource");
         }
+
         $request->validated($request->all());
-        if($isCollector->count()==0 && $hasCollecctor->count()==0){
+        
+        // This one is to check if the user own that resource or not, if not were they been assign to customer that own the resource 
+        if($receivable->customer->user_id !=$user->id && $isCollector->count()==0 ){
             return $this->error('','You not authorize to make any payment under this resource');
         }
 
