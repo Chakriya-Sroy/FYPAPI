@@ -22,14 +22,14 @@ class PayableController extends Controller
     public function index()
     {
         //
-        $user =Auth::user();
-        $payables=$user->payables;
-        if($payables->count()==0){
-            return response()->json("There no resource available yet",200);
-        }
+        $user = Auth::user();
+        $payables = $user->payables->sortByDesc('created_at');
+        // if ($payables->count() == 0) {
+        //     return response()->json("There no resource available yet", 200);
+        // }
         //return $this->success(['attributes'=>$payables]);
-       //return $payables;
-       return $this->success(PayableResource::collection($payables));
+        //return $payables;
+        return $this->success(PayableResource::collection($payables));
     }
 
     /**
@@ -46,33 +46,32 @@ class PayableController extends Controller
     public function store(StorePayableRequest $request)
     {
         $request->validated($request->all());
-        $supplier =Supplier::find($request->supplier_id);
-        if(!$supplier){
-            return $this->error('',"Supplier didn't exist");
+        $supplier = Supplier::find($request->supplier_id);
+        if (!$supplier) {
+            return $this->error('', "Supplier didn't exist");
         }
-        if($supplier->user_id!==Auth::user()->id){
+        if ($supplier->user_id !== Auth::user()->id) {
             return $this->error('', "You don't authorized to create any resource under this supplier", 403);
         }
         $payable = Payable::create([
-            'supplier_id'=>$request->supplier_id,
-            'title'=>$request->title,
+            'supplier_id' => $request->supplier_id,
             'amount' => $request->amount,
             'remaining' => $request->amount,
             'payment_term' => $request->payment_term,
             'status' => "outstanding",
-            'date' => $request->date,
+            'date' => now(),
             'dueDate' => $request->dueDate,
             'attachment' => $request->attachment,
             'remark' => $request->remark,
         ]);
-        $transaction =PayableTransaction::create([
-            'transaction_type'=>"payable",
-            'amount'=>$payable->amount,
-            'payable_id'=>$payable->id,
-            'supplier_id'=>$payable->supplier_id,
-            'transaction_date'=>$payable->date,
+        $transaction = PayableTransaction::create([
+            'transaction_type' => "payable",
+            'amount' => $payable->amount,
+            'payable_id' => $payable->id,
+            'supplier_id' => $payable->supplier_id,
+            'transaction_date' => $payable->date,
         ]);
-        return $this->success(new PayableResource($payable),'The payable create successfully');
+        return $this->success(new PayableResource($payable), 'The payable create successfully');
     }
 
     /**
@@ -81,12 +80,12 @@ class PayableController extends Controller
     public function show(string $id)
     {
         //
-        $payable=Payable::find($id);
-        if(!$payable){
-            return $this->error('','There no resource exist');
+        $payable = Payable::find($id);
+        if (!$payable) {
+            return $this->error('', 'There no resource exist');
         }
-        if($payable->supplier->user_id !== Auth::user()->id){
-            return $this->error('','You not authorized to view this resource');
+        if ($payable->supplier->user_id !== Auth::user()->id) {
+            return $this->error('', 'You not authorized to view this resource');
         }
         return new PayableResource($payable);
     }
@@ -112,17 +111,17 @@ class PayableController extends Controller
      */
     public function destroy(string $id)
     {
-        $supplier =Supplier::find($id);
-        if($supplier){
-            return $this->error('','There no resource exist');
+        $supplier = Supplier::find($id);
+        if ($supplier) {
+            return $this->error('', 'There no resource exist');
         }
-        if($supplier->user_id !== Auth::user()->id){
-            return $this->error('','You not authorized to delete this resource');
+        if ($supplier->user_id !== Auth::user()->id) {
+            return $this->error('', 'You not authorized to delete this resource');
         }
-        $payable=Payable::find($id)->delete();
-        return response()->json(null,200);
+        $payable = Payable::find($id)->delete();
+        return response()->json(null, 200);
     }
-    
+
     public function upcoming()
     {
         $user = Auth::user();
@@ -147,15 +146,18 @@ class PayableController extends Controller
                         }
                     }
                 } else {
-                    $newDueDate = Carbon::parse($payable->dueDate, 'UTC');
-                    $daysRemaining = $newDueDate->diffInDays($currentDate);
-                    if ($newDueDate->isAfter($currentDate)) {
-                        $upcomingPayables[] = [
+                    // Calculate the next reminder date
+                    $reminderInterval = $payable->payment_term; // 7 or 15 days
+                    $nextReminderDate = $currentDate->copy()->addDays($reminderInterval);
+                    // Ensure the next reminder date is before the due date
+                    if ($nextReminderDate->isBefore($payable->dueDate)) {
+                        $daysUntilReminder = $nextReminderDate->diffInDays($currentDate);
+                        $upcomingReceivables[] = [
                             'id' => $payable->id,
                             'supplier' => $payable->supplier->fullname,
                             'remaining' => $payable->remaining,
                             'status' => $payable->status,
-                            'upcoming' => "Due in $daysRemaining days"
+                            'upcoming' => "Due in $daysUntilReminder days"
                         ];
                     }
                 }
@@ -181,7 +183,7 @@ class PayableController extends Controller
                             'supplier' => $payable->supplier->fullname,
                             'remaining' => $payable->remaining,
                             'status' => $payable->status,
-                            'overdue' => $daysRemaining == 0 ? "Due yesterday" : "Over due".$daysRemaining."days ago"
+                            'overdue' => $daysRemaining == 0 ? "Due yesterday" : "Over due" . $daysRemaining . "days ago"
                         ];
                     }
                 } else {
@@ -193,7 +195,7 @@ class PayableController extends Controller
                             'supplier' => $payable->supplier->fullname,
                             'remaining' => $payable->remaining,
                             'status' => $payable->status,
-                            'overdue' => $daysRemaining == 0 ? "Due yesterday" : "Over due".$daysRemaining."days ago"
+                            'overdue' => $daysRemaining == 0 ? "Due yesterday" : "Over due" . $daysRemaining . "days ago"
                         ];
                     }
                 }

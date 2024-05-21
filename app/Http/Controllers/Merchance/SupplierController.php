@@ -20,7 +20,7 @@ class SupplierController extends Controller
     {
         //
         $user =Auth::user();
-        $supplier =$user->suppliers;
+        $supplier =$user->suppliers->sortByDesc('created_at');
         return $this->success(SupplierResource::collection($supplier));
        
     }
@@ -39,7 +39,18 @@ class SupplierController extends Controller
     public function store(StoreSupplierRequest $request)
     {
 
-        // $request->validated($request->all());
+        $request->validated($request->all());
+        $user=Auth::user();
+        $subscription=$user->subscription;
+        if(!$subscription){
+            // check if the customer exceed the 5
+            if($user->suppliers->count() > 5){
+                return $this->error("","Opp, You already exceed the allow customers,Please subscription to Premium plan");
+            }
+        }
+        if($subscription && $subscription->active ==false){
+            return $this->error("","Please renew the plan to enjoy unlimited");
+        }
         $supplier=Supplier::create(
             [
                 'fullname' => $request->fullname,
@@ -99,7 +110,6 @@ class SupplierController extends Controller
         return $this->success(
             new SupplierResource($supplier),
             'Supplier Update Succesfully',
-            200
         );
     }
 

@@ -11,7 +11,6 @@ return new class extends Migration
             $table->id();
             $table->integer('customer_id')->unsigned();
             $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade'); // if the customer is deleted, all the receivable also gone
-            $table->String('title');
             $table->double("amount");
             $table->double("remaining");
             $table->String("status");

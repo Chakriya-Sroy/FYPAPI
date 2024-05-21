@@ -36,11 +36,11 @@ class ReceivableController extends Controller
             return "There no resource avaialbel yet";
         }
         // Step 3: Initialize arrays to store receivables
-        $receivables = $user->receivables;
+        $receivables = $user->receivables->sortByDesc('created_at');
         $assginReceivable = [];
         // Step 5: Iterate over each assign customer
         foreach ($assignCustomer as $customer) {
-            $assginReceivable[] = ReceivableResource::collection(Receivable::where("customer_id", $customer->customer_id)->get());
+            $assginReceivable[] = ReceivableResource::collection(Receivable::where("customer_id", $customer->customer_id)->orderBy('created_at', 'desc')->get());
         }
         return $this->success(
             [
@@ -73,12 +73,11 @@ class ReceivableController extends Controller
         }
         $receivable = Receivable::create([
             'customer_id' => $request->customer_id,
-            'title' => $request->title,
             'amount' => $request->amount,
             'remaining' => $request->amount,
             'payment_term' => $request->payment_term,
             'status' => "oustanding",
-            'date' => $request->date,
+            'date' => now(),
             'dueDate' => $request->dueDate,
             'attachment' => $request->attachment,
             'remark' => $request->remark,
@@ -175,19 +174,23 @@ class ReceivableController extends Controller
                             ];
                         }
                     }
-                } else {
-                    $newDueDate = Carbon::parse($receivable->dueDate, 'UTC');
-                    $daysRemaining = $newDueDate->diffInDays($currentDate);
-                    if ($newDueDate->isAfter($currentDate)) {
-                        $upcomingReceivables[] = [
-                            'id' => $receivable->id,
-                            'customer' => $receivable->customer->fullname,
-                            'remaining' => $receivable->remaining,
-                            'status' => $receivable->status,
-                            'upcoming' => "Due in $daysRemaining days"
-                        ];
-                    }
-                }
+                }  
+                else{
+                // Calculate the next reminder date
+                $reminderInterval = $receivable->payment_term; // 7 or 15 days
+                $nextReminderDate = $currentDate->copy()->addDays($reminderInterval);
+                // Ensure the next reminder date is before the due date
+                if ($nextReminderDate->isBefore($receivable->dueDate)) {
+                    $daysUntilReminder = $nextReminderDate->diffInDays($currentDate);
+                    $upcomingReceivables[] = [
+                        'id' => $receivable->id,
+                        'customer' => $receivable->customer->fullname,
+                        'remaining' => $receivable->remaining,
+                        'status' => $receivable->status,
+                        'upcoming' => "Due in $daysUntilReminder days"
+                    ];
+                 }
+                } 
             }
         }
         return response()->json(['upcomingReceivables' => $upcomingReceivables], 200);

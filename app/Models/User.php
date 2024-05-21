@@ -100,4 +100,16 @@ class User extends Authenticatable
     // {
     //     return $this->belongsToMany(Customer::class, 'collector_customer', 'collector_id', 'customer_id');
     // }
+
+
+    /// Special case
+    public function sentInvitations()
+    {
+        return $this->hasMany(Invitation::class, 'sender_id');
+    }
+
+    public function receivedInvitations()
+    {
+        return $this->hasMany(Invitation::class, 'receiver_id');
+    }
 }

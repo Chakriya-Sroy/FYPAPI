@@ -42,6 +42,6 @@ class RegisteredUserController extends Controller
         $token =$user->createToken('api-token');
         // update the role and user table
         $userandrole=UserandRole::create(['user_id'=>$user->id,'role_id'=>1]);
-       return $this->success(["user"=>$user,"role"=>$userandrole,"token"=>$token]);
+       return $this->success(["user"=>$user,"role"=>$userandrole,"token"=>$token],"Register Succesfully");
     }
 }

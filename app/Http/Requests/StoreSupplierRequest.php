@@ -23,10 +23,7 @@ class StoreSupplierRequest extends FormRequest
     {
         return [
             'fullname' => 'required',
-            'email' => 'required|email',
-            'phone' => 'required',
-            'address' => 'required',
-            'remark'=>'sometimes'
+            'phone' => 'required'
         ];
     }
 }

@@ -30,7 +30,7 @@ class CustomerResource extends JsonResource
                 'updated_at' => $this->updated_at
 
             ],
-            'receivables'=>$this->receivables,
+            'receivables'=>$this->receivables->sortByDesc('created_at')->values()->all(),
             'relationships' => [
                 'id' => (string)$this->user->id,
                 'name' => $this->user->name,

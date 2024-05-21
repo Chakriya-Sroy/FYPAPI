@@ -24,9 +24,7 @@ class StoreCustomerRequest extends FormRequest
         return [
             'fullname' => 'required',
             'gender' => 'required',
-            'email' => 'required|email',
-            'phone' => 'required',
-            'address' => 'required',
+            'phone' => 'required'
         ];
     }
 }

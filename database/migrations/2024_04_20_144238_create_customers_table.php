@@ -18,8 +18,8 @@ return new class extends Migration
             $table->String("fullname");
             $table->String("gender");
             $table->String("phone");
-            $table->String("email");
-            $table->String("address");
+            $table->String("email")->nullable();
+            $table->String("address")->nullable();
             $table->String("remark")->nullable();
             $table->timestamps();
         });

@@ -19,7 +19,6 @@ class ReceivableResource extends JsonResource
                 'id' => (string)$this->id,
                 'customerId'=>$this->customer->id,
                 'customerName'=>$this->customer->fullname,
-                'title'=>$this->title,
                 'amount' => $this->amount,
                 'remaining' => $this->remaining,
                 'payment_term' => $this->payment_term,
@@ -33,7 +32,7 @@ class ReceivableResource extends JsonResource
 
             ],
             'relationships' => [
-                'payment'=>$this->payments,
+                'payment'=>$this->payments->sortByDesc('created_at')->values()->all(),
                 'customer' => $this->customer,
             ]
         ];

@@ -22,11 +22,9 @@ class StorePayableRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title'=>'required|string|max:255',
             'supplier_id'=>'required',
             'amount' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
             'payment_term'=>'required|in:equaltodueDate,7,15',
-            'date'=>'required|date',
             'dueDate' => 'required|date',
             'attachment'=>'sometimes',
             'remark'=>'sometimes'

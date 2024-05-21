@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\GoogleLogin;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\Merchance\CollecterController;
 use App\Http\Controllers\Merchance\CustomerController;
 use App\Http\Controllers\Merchance\PayableController;
 use App\Http\Controllers\Merchance\PayablePaymentController;
@@ -16,6 +19,7 @@ use App\Http\Controllers\SubscriptionController;
 use App\Models\PayablePayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Laravel\Socialite\Facades\Socialite;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,9 +49,13 @@ Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
                 ->middleware('guest')
                 ->name('password.email');
 
+Route::get('/auth/google', [GoogleLogin::class, 'redirectToGoogle'])->middleware('guest');
+Route::get('/auth/google/callback', [GoogleLogin::class, 'handleGoogleCallback'])->middleware('guest');
+
 
 Route::middleware(['auth:sanctum'])->group(function(){
     //User Route
+    Route::get('/user/list',[AdminController::class,'index'])->name('get.all.user');
     Route::get("user",[UserController::class,'index'])->name('user');
     Route::get('/user/receivables/upcoming',[ReceivableController::class,'upcoming'])->name('upcoming.receivable');
     Route::get('/user/receivables/overdue',[ReceivableController::class,'overdue'])->name('upcoming.receivable');
@@ -96,15 +104,25 @@ Route::middleware(['auth:sanctum'])->group(function(){
         }); 
     });
    // meaning user 1 invite user 2 as there collector and user 2 accept the request 
-   Route::post('/collector/invitation',[InvitationController::class,'store'])->name('collector.invatation');
+   //Route::post('/collector/invitation',[InvitationController::class,'store'])->name('collector.invatation');
+  
+   Route::post('/invitations', [InvitationController::class, 'sendInvitation'])->name('request.collector.invitation');
+   Route::post('/invitations/respond', [InvitationController::class, 'respondInvitation'])->name('respond.collector.invitation');
+   Route::post('/invitations/cancel',[InvitationController::class,'cancelInvitation'])->name('cancel.collector.invitation');
    Route::post('/collector/remove',[InvitationController::class,'remove'])->name('collector.remove');
-   Route::post('/collector/customer/assign',[InvitationController::class,'assign'])->name('collector.assign');
-   Route::post('/collector/customer/unassign',[InvitationController::class,'unassign'])->name('collector.assign');
 
+   Route::post('/collector/customer/assign',[CollecterController::class,'assign'])->name('collector.assign');
+   Route::post('/collector/customer/unassign',[CollecterController::class,'unassign'])->name('collector.assign');
+   
+   // show the invitation that user receive
+   Route::get('user/show/invitation',[InvitationController::class,'showReceivedInvitation'])->name('show.user.invitation');
+   // show the invitation that user request
+   Route::get('user/show/request',[InvitationController::class,'showRequestInvitation'])->name('show.user.request');
 
    // subscription plan
    Route::post('/subscription',[SubscriptionController::class,'store'])->name('subscription');
    Route::patch('/subscription/update',[SubscriptionController::class,'update'])->name('subscription.update');
 
+ 
 
 });

@@ -16,7 +16,6 @@ return new class extends Migration
             $table->id();
             $table->integer('supplier_id')->unsigned();
             $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('cascade'); // if the customer is deleted, all the receivable also gone
-            $table->String('title');
             $table->double("amount");
             $table->double("remaining");
             $table->String("status");

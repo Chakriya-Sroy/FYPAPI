@@ -29,7 +29,7 @@ class SupplierResource extends JsonResource
               'updated_at'=>$this->updated_at
               
             ],
-            'payables'=>$this->payables,
+            'payables'=>$this->payables->sortByDesc('created_at')->values()->all(),
             'relationships'=>[
                 'id'=>(string)$this->user->id,
                 'name'=>$this->user->name,

@@ -20,7 +20,6 @@ class PayableResource extends JsonResource
             'id' => (string)$this->id,
             'supplierId'=>$this->supplier->id,
             'supplierName'=>$this->supplier->fullname,
-            'title'=>$this->title,
             'amount' => $this->amount,
             'remaining' => $this->remaining,
             'payment_term' => $this->payment_term,
@@ -34,7 +33,7 @@ class PayableResource extends JsonResource
 
         ],
         'relationships' => [
-            'payment'=>$this->payments,
+            'payment'=>$this->payments->sortByDesc('created_at')->values()->all(),
             'supplier' => $this->supplier,
         ]
         ];

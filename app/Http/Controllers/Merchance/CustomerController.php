@@ -39,7 +39,7 @@ class CustomerController extends Controller
         
         return $this->success(
             [
-                "Customer" => CustomerResource::collection($user->customers),
+                "Customer" => CustomerResource::collection($user->customers->sortByDesc('created_at')),
                 "Assign Customer" =>CustomerResource::collection( $assign_customer)
             ],
             '',
