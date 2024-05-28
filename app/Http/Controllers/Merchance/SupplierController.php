@@ -48,8 +48,10 @@ class SupplierController extends Controller
                 return $this->error("","Opp, You already exceed the allow customers,Please subscription to Premium plan");
             }
         }
-        if($subscription && $subscription->active ==false){
-            return $this->error("","Please renew the plan to enjoy unlimited");
+        else{
+            if(!$subscription->active && now()->isAfter($subscription->end)){
+                return $this->error("","Please renew the plan to enjoy unlimited");
+            }
         }
         $supplier=Supplier::create(
             [

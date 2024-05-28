@@ -57,10 +57,14 @@ Route::middleware(['auth:sanctum'])->group(function(){
     //User Route
     Route::get('/user/list',[AdminController::class,'index'])->name('get.all.user');
     Route::get("user",[UserController::class,'index'])->name('user');
+    Route::get("user/assign/customers",[CollecterController::class,'viewAssignCustomer'])->name('customer.assign.to.user.as.collector');
+    Route::get("user/assign/receivables",[CollecterController::class,'viewtotalReceivableofAssignCustomer'])->name('view.assign.customer.recievable');
+    Route::get("user/assign/upcoming/receivables",[CollecterController::class,'getUpcomingAssignReceivableofAssignCustomer'])->name('get.upcoming.assign.receivables.ofcustomer');
     Route::get('/user/receivables/upcoming',[ReceivableController::class,'upcoming'])->name('upcoming.receivable');
     Route::get('/user/receivables/overdue',[ReceivableController::class,'overdue'])->name('upcoming.receivable');
     Route::get('/user/payables/upcoming',[PayableController::class,'upcoming'])->name('upcoming.receivable');
     Route::get('/user/payables/overdue',[PayableController::class,'overdue'])->name('upcoming.receivable');
+    Route::get('/customer/get_assign_customer_to_collector',[CustomerController::class,'getAssignedCustomers'])->name('get.assign.customer');
     //customer Route
     Route::prefix('customer')->group(function(){
         Route::get('/list',[CustomerController::class,'index'])->name("customer.list");

@@ -4,30 +4,113 @@ namespace App\Http\Controllers\Merchance;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCollectorCustomer;
+use App\Http\Resources\CustomerResource;
+use App\Models\Collector;
 use App\Models\Customer;
 use App\Models\CustomerAndCollector;
 use App\Models\User;
+use App\Traits\HttpResponse;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class CollecterController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+
+    use HttpResponse;
+    public function viewAssignCustomer()
     {
-        //
+        $userId = Auth::user()->id; // Assuming you want to get the current logged-in user's ID
+        $customers = Customer::join('collector_customer', 'customers.id', '=', 'collector_customer.customer_id')
+        ->where('collector_customer.collector_id', $userId) // Changed from 'cc.collector_id' to 'collector_customer.collector_id'
+        ->select('customers.*')
+        ->get();
+
+        return response()->json(CustomerResource::collection($customers));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function viewtotalReceivableofAssignCustomer()
     {
-        // view customer under their controll
-    }
+        $user = Auth::user();
+        $userId = $user->id;
+        $results = DB::table('receivables as r')
+            ->join('collector_customer as cc', 'r.customer_id', '=', 'cc.customer_id')
+            ->where('cc.collector_id', $userId)
+            ->select(DB::raw('SUM(r.amount) as total_amount, SUM(r.remaining) as total_remaining'))
+            ->first();
 
+        $totalAmount = $results->total_amount == null ? 0: $results->total_amount ;
+        $totalRemaining = $results->total_remaining ==null ?0 : $results->total_remaining;
+        $totalPaid=$totalAmount-$totalRemaining;
+        return response()->json([
+            'total_amount' => $totalAmount,
+            'total_paid'=>$totalPaid,
+            'total_remaining' => $totalRemaining
+        ]);
+    }
+    public function getUpcomingAssignReceivableofAssignCustomer(){
+        $user = Auth::user();
+        $userId = $user->id;
+        $receivables = DB::table('receivables as r')
+        ->join('collector_customer as cc', 'r.customer_id', '=', 'cc.customer_id')
+        ->where('cc.collector_id', $userId)
+        ->select('r.*')
+        ->get(); 
+        $currentDate = Carbon::now('UTC');
+        $upcomingReceivables = [];
+        foreach ($receivables as $receivable) {
+            // Check if the receivable's payment term matches the due date
+           $customer= DB::table('customers')->where('id',$receivable->customer_id)->select('fullname')->first();
+            if ($receivable->status != "fullypaid") {
+                if ($receivable->payment_term === "equaltodueDate") {
+                    $newDueDate = Carbon::parse($receivable->dueDate, 'UTC');
+                    if ($newDueDate->isAfter($currentDate)) {
+                        $daysRemaining = $newDueDate->diffInDays($currentDate);
+                        if ($daysRemaining === 0 || $daysRemaining === 1) {
+                            $upcomingReceivables[] = [
+                                'id' => $receivable->id,
+                                'customer' => $customer->fullname,
+                                'remaining' => $receivable->remaining,
+                                'status' => $receivable->status,
+                                'upcoming' => $daysRemaining == 0 ? "Due Today" : "Due Tomorrow"
+                            ];
+                        }
+                    }
+                } else {
+                    //Note just change the receiver today haven't done for payable yet wait until the receivable is correct
+                    // Calculate the next reminder date
+                    $reminderInterval = $receivable->payment_term; // 7 or 15 days
+                    $nextReminderDate = $receivable->created_at->copy()->addDays($reminderInterval);
+
+                    // Ensure the next reminder date is before the due date
+                    if ($nextReminderDate->isBefore($receivable->dueDate)) {
+                        // Calculate the days until the next reminder date
+                        $daysUntilReminder = $currentDate->diffInDays($nextReminderDate, false);
+
+                        // Ensure daysUntilReminder is positive
+                        if ($daysUntilReminder > 0) {
+                            // Prepare the upcoming receivables data
+                            $upcomingReceivables[] = [
+                                'id' => $receivable->id,
+                                'customer' => $customer->fullname,
+                                'remaining' => $receivable->remaining,
+                                'status' => $receivable->status,
+                                'upcoming' => "Due in $daysUntilReminder days"
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+        return response()->json(['upcomingReceivables' => $upcomingReceivables], 200);
+    }
     /**
      * Store a newly created resource in storage.
      */
@@ -94,7 +177,7 @@ class CollecterController extends Controller
         }
         // Step 4 Assign customer to collector
         CustomerAndCollector::create(['collector_id' => $collector->id, 'customer_id' => $customer->id]);
-        return $this->success('', 'Customer has been assign to collector successfully');
+        return $this->success($customer, 'Customer has been assign to collector successfully');
     }
 
     public function unassign(StoreCollectorCustomer $request)
@@ -128,7 +211,30 @@ class CollecterController extends Controller
         CustomerAndCollector::where('collector_id', $collector->id)
             ->where('customer_id', $customer->id)
             ->delete();
-        return $this->success('', 'Customer has been unassigned from the collector successfully');
+        return $this->success($customer, 'Customer has been unassigned from the collector successfully');
     }
-
+    private function checkUserHasCollector()
+    {
+        $user = Auth::user();
+        $hasCollector = Collector::where('user_id', $user->id)->get();
+        return $hasCollector->count() > 0;
+    }
+    private function isYourCollector(Request $request)
+    {
+        $collector = Collector::where('collector_id', $request->collector_id)->where('user_id', Auth::user()->id)->get();
+        if ($collector->count() == 0) {
+            return false;
+        }
+        return true;
+    }
+    private function CustomerAlreadyAssignToCollector(Request $request)
+    {
+        $customer = CustomerAndCollector::where('customer_id', $request->customer_id)
+            ->where('collector_id', $request->collector_id)
+            ->get();
+        if ($customer->count() == 0) {
+            return false;
+        }
+        return true;
+    }
 }

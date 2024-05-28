@@ -28,11 +28,15 @@ class InvitationController extends Controller
         // Invitation that hase been received
         $user = Auth::user();
         $showSenderInfo = [];
-        foreach ($user->receivedInvitations as $invitation) {
+        $receivedInvitations = $user->receivedInvitations->sortByDesc('created_at');
+        foreach ($receivedInvitations as $invitation) {
+           if($invitation->status =='pending'){
             $showSenderInfo[] = [
                 'sender' => User::find($invitation->sender_id),
-                'status' => $invitation->status
+                'status' => $invitation->status,
+                'date' => $invitation->created_at
             ];
+           }
         }
         return response()->json($showSenderInfo, 200);
     }
@@ -40,14 +44,18 @@ class InvitationController extends Controller
     {
         // Invitation that has been send
         $user = Auth::user();
+        $sentInvitations = $user->sentInvitations->sortByDesc('created_at');
+
+        // Prepare the response data
         $showUserRequestofInvitation = [];
-        foreach ($user->sentInvitations as $invitation) {
+        foreach ($sentInvitations as $invitation) {
             $showUserRequestofInvitation[] = [
                 'receiver' => User::find($invitation->receiver_id),
-                'status' => $invitation->status
+                'status' => $invitation->status,
+                'date' => $invitation->created_at
             ];
         }
-        return response()->json( $showUserRequestofInvitation, 200);
+        return response()->json($showUserRequestofInvitation, 200);
     }
 
     /**
@@ -233,6 +241,7 @@ class InvitationController extends Controller
     {
         // Validate the request to ensure 'status' is either 'accepted' or 'declined'
         $request->validate([
+            'sender_id' => 'required|exists:invitations,sender_id',
             'status' => 'required|in:accepted,declined',
         ]);
 
@@ -240,7 +249,10 @@ class InvitationController extends Controller
         $user = Auth::user();
 
         // Find the invitation by its ID
-        $invitation = Invitation::where('receiver_id', $user->id)->firstOrFail();
+        $invitation = Invitation::where('receiver_id', $user->id)
+            ->where('sender_id', $request->input('sender_id'))
+            ->firstOrFail();
+
 
         if (!$invitation) {
             return response()->json(['message' => "You have no request"], 400);
@@ -268,6 +280,6 @@ class InvitationController extends Controller
         }
 
         // Return the updated invitation
-        return response()->json($invitation);
+        return response()->json(["message"=>"User $invitation->status request"],200);
     }
 }

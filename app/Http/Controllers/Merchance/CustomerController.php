@@ -24,29 +24,11 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        $user=Auth::user();
-        $assign_customer=[];
-        $assignCustomer =CustomerAndCollector::where('collector_id',$user->id)->get();
-        if($assignCustomer->count()==1){
-           $id=$assignCustomer[0]->customer_id;
-           $assign_customer=Customer::find($id);
-        }
-        else if($assignCustomer->count()>1){
-            foreach($assignCustomer as $assign){
-                $assign_customer[]=Customer::find($assign->customer_id);
-            }
-        }
-        
-        return $this->success(
-            [
-                "Customer" => CustomerResource::collection($user->customers->sortByDesc('created_at')),
-                "Assign Customer" =>CustomerResource::collection( $assign_customer)
-            ],
-            '',
-        );
+        $user=Auth::user();      
+        return $this->success(CustomerResource::collection($user->customers->sortByDesc('created_at')));
     }
 
-    /**
+    /**_
      * Show the form for creating a new resource.
      */
     public function create()
@@ -62,14 +44,16 @@ class CustomerController extends Controller
         $request->validated($request->all());
         $user =Auth::user();
         $subscription=$user->subscription;
-        if(!$subscription){
-            // check if the customer exceed the 5
-            if($user->customers->count() > 5){
-                return $this->error("","Opp, You already exceed the allow customers,Please subscription to Premium plan");
+        if (!$subscription) {
+            // Check if the user exceeds the allowed number of customers
+            if ($user->customers->count() >= 5) {  // Changed > to >= to properly limit to 5 customers
+                return $this->error("", "Oops, you have already exceeded the allowed number of customers. Please subscribe to the Premium plan.");
             }
-        }
-        if($subscription && $subscription->active ==false){
-            return $this->error("","Please renew the plan to enjoy unlimited");
+        } else {
+            // Check if the subscription is inactive and has ended
+            if (!$subscription->active && now()->isAfter($subscription->end)) {
+                return $this->error("", "Please renew the plan to enjoy unlimited customers.");
+            }
         }
         $customer = Customer::create([
             'fullname' => $request->fullname,
@@ -161,14 +145,35 @@ class CustomerController extends Controller
     }
 
     public function transaction(String $id){
+        $user =Auth::user();
+
         $customer=Customer::find($id);
         if(!$customer){
             return $this->error('','There no available resource ');
         }
-        if (Auth::user()->id !== $customer->user_id) {
-            return $this->error('', 'You are not authorized to view this resource', 401);
+        if ($user->id == $customer->user_id) {
+            return $this->success($customer->transactions);
         }
-        $transaction =$customer->transactions;
-        return $this->success($transaction);
+        $isCollectorCustomer = CustomerAndCollector::where('customer_id', $customer->id)
+        ->where('collector_id', $user->id)
+        ->exists();
+        if($isCollectorCustomer){
+            return $this->success($customer->transactions);
+        }
+        
+        return $this->error('', 'You are not authorized to view this resource', 401);
+    }
+
+    public function getAssignedCustomers() // just to find the list of customer that assign to collector
+    {
+        // The purpose find the customer that owner assign to collector
+        $user = Auth::user();
+        // Fetch assigned customers with a join
+        $assignedCustomers = Customer::join('collector_customer', 'customers.id', '=', 'collector_customer.customer_id')
+            ->where('customers.user_id', $user->id)
+            ->select('customers.*')
+            ->get();
+
+        return $this->success($assignedCustomers);
     }
 }

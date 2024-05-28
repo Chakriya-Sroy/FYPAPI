@@ -46,7 +46,8 @@ class ReceivableController extends Controller
             [
                 "receivables" => ReceivableResource::collection($receivables),
                 "assignReceivable" => $assginReceivable
-            ],''
+            ],
+            ''
         );
     }
 
@@ -98,19 +99,20 @@ class ReceivableController extends Controller
     public function show(String $id)
     {
         $receivable = Receivable::find($id);
+        $user=Auth::user();
         //check if the resource is empty or not
         if (!$receivable) {
             return $this->error('', 'There no resource available');
         }
         // check if the user have authorize to view the resource or not
-        if (Auth::user()->id == $receivable->customer->user_id) {
+        if ($user->id == $receivable->customer->user_id) {
             return new ReceivableResource($receivable);
         }
-        $collector = CustomerAndCollector::where('collector_id', Auth::user()->id)->where('customer_id', $receivable->customer->id)->get();
-        if ($collector->count() > 0) {
-            return response()->json([
-                'assign_receivable' => new ReceivableResource($receivable)
-            ]);
+        $isCollectorCustomer = CustomerAndCollector::where('customer_id', $receivable->customer->id)
+        ->where('collector_id', $user->id)
+        ->exists();
+        if ( $isCollectorCustomer) {
+           return  new ReceivableResource($receivable);
         }
         return $this->error('', 'You are not authorized to view the resource');
     }
@@ -174,23 +176,30 @@ class ReceivableController extends Controller
                             ];
                         }
                     }
-                }  
-                else{
-                // Calculate the next reminder date
-                $reminderInterval = $receivable->payment_term; // 7 or 15 days
-                $nextReminderDate = $currentDate->copy()->addDays($reminderInterval);
-                // Ensure the next reminder date is before the due date
-                if ($nextReminderDate->isBefore($receivable->dueDate)) {
-                    $daysUntilReminder = $nextReminderDate->diffInDays($currentDate);
-                    $upcomingReceivables[] = [
-                        'id' => $receivable->id,
-                        'customer' => $receivable->customer->fullname,
-                        'remaining' => $receivable->remaining,
-                        'status' => $receivable->status,
-                        'upcoming' => "Due in $daysUntilReminder days"
-                    ];
-                 }
-                } 
+                } else {
+                    //Note just change the receiver today haven't done for payable yet wait until the receivable is correct
+                    // Calculate the next reminder date
+                    $reminderInterval = $receivable->payment_term; // 7 or 15 days
+                    $nextReminderDate = $receivable->created_at->copy()->addDays($reminderInterval);
+
+                    // Ensure the next reminder date is before the due date
+                    if ($nextReminderDate->isBefore($receivable->dueDate)) {
+                        // Calculate the days until the next reminder date
+                        $daysUntilReminder = $currentDate->diffInDays($nextReminderDate, false);
+
+                        // Ensure daysUntilReminder is positive
+                        if ($daysUntilReminder > 0) {
+                            // Prepare the upcoming receivables data
+                            $upcomingReceivables[] = [
+                                'id' => $receivable->id,
+                                'customer' => $receivable->customer->fullname,
+                                'remaining' => $receivable->remaining,
+                                'status' => $receivable->status,
+                                'upcoming' => "Due in $daysUntilReminder days"
+                            ];
+                        }
+                    }
+                }
             }
         }
         return response()->json(['upcomingReceivables' => $upcomingReceivables], 200);
