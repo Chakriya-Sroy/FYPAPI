@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,3 +20,10 @@ Route::get('/', function () {
 });
 
 require __DIR__.'/auth.php';
+
+// Route::get('/reset-password',function(){
+//     return view('reset_password');
+// })->name('reset-password');
+
+Route::get('/reset-password/{token}/{expireIn}',[PasswordResetLinkController::class,'resetPasswordLoad'])->name('reset-password-view');
+Route::post('/reset-password', [NewPasswordController::class, 'store'])->middleware('guest')->name('password.store');

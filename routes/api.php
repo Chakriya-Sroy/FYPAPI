@@ -42,13 +42,15 @@ Route::post('/register', [RegisteredUserController::class, 'store'])
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])
                 ->middleware('guest')
                 ->name('login');
-Route::post('/reset-password', [NewPasswordController::class, 'store'])
-                ->middleware('guest')
-                ->name('password.store');
+
 Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
                 ->middleware('guest')
                 ->name('password.email');
-
+                
+Route::post('/reset-password', [NewPasswordController::class, 'store'])
+                ->middleware('guest')
+                ->name('password.store');
+                
 Route::get('/auth/google', [GoogleLogin::class, 'redirectToGoogle'])->middleware('guest');
 Route::get('/auth/google/callback', [GoogleLogin::class, 'handleGoogleCallback'])->middleware('guest');
 

@@ -12,6 +12,7 @@ use App\Traits\HttpResponse;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class PayableController extends Controller
 {
@@ -53,6 +54,11 @@ class PayableController extends Controller
         if ($supplier->user_id !== Auth::user()->id) {
             return $this->error('', "You don't authorized to create any resource under this supplier", 403);
         }
+        if($request['attachment'] !=null){
+        //   $path= $request['attachment']->storeAs('public',$request['attachment']->getClientOriginalName());
+          $request['attachment']->storeAs('quiz4',$request['attachment']->getClientOriginalName(),'spaces');
+       
+        }
         $payable = Payable::create([
             'supplier_id' => $request->supplier_id,
             'amount' => $request->amount,
@@ -61,9 +67,11 @@ class PayableController extends Controller
             'status' => "outstanding",
             'date' => now(),
             'dueDate' => $request->dueDate,
-            'attachment' => $request->attachment,
+            'attachment' => $request->attachment =='' ? '' : "https://testfyp1.sgp1.cdn.digitaloceanspaces.com/quiz4/{$request['attachment']->getClientOriginalName()}",
             'remark' => $request->remark,
         ]);
+        // For Storing image
+       
         $transaction = PayableTransaction::create([
             'transaction_type' => "payable",
             'amount' => $payable->amount,
