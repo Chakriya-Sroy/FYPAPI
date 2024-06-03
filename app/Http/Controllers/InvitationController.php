@@ -11,6 +11,7 @@ use App\Models\Collector;
 use App\Models\Customer;
 use App\Models\CustomerAndCollector;
 use App\Models\Invitation;
+use App\Models\Notifications;
 use App\Traits\HttpResponse;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -235,14 +236,21 @@ class InvitationController extends Controller
             'status' => 'pending',
         ]);
 
+        Notifications::create([
+            'user_id' => $request->receiver_id,
+            'sender_id'=>$user->id,
+            'message' => "{$user->name} invite you as collector",
+            'invitation_id'=>$invitation->id,
+            'type'=>'invitation_request'
+        ]);
         return response()->json(['message' => "Your request has been send successfully", 'invitation' => $invitation], 200);
     }
     public function respondInvitation(Request $request)
     {
         // Validate the request to ensure 'status' is either 'accepted' or 'declined'
         $request->validate([
+            'status' => 'required',
             'sender_id' => 'required|exists:invitations,sender_id',
-            'status' => 'required|in:accepted,declined',
         ]);
 
         // Get the authenticated user
@@ -250,8 +258,9 @@ class InvitationController extends Controller
 
         // Find the invitation by its ID
         $invitation = Invitation::where('receiver_id', $user->id)
-            ->where('sender_id', $request->input('sender_id'))
-            ->firstOrFail();
+        ->where('sender_id', $request->input('sender_id'))
+        ->orderBy('created_at', 'desc') // Sort by created_at in descending order
+        ->firstOrFail();
 
 
         if (!$invitation) {
@@ -263,23 +272,36 @@ class InvitationController extends Controller
             if ($this->hasAcceptedCollectorInvitation($user->id)) {
                 return response()->json(['message' => 'You have already accepted another invitation'], 400);
             }
-
+           
             // Mark the invitation as accepted
-            $invitation->status = 'accepted';
-            $invitation->save();
-
-            // Update UserandRole Table to assign role to receiver
+            // $invitation->status ='accepted';
+            // $invitation->save();
+            $invitation->update(['status' => 'accepted']);
+           // Update UserandRole Table to assign role to receiver
             UserandRole::create(['user_id' => $user->id, 'role_id' => 2]);
 
             // Update CollectorandUser table to establish the collector relationship
             Collector::create(['user_id' => $invitation->sender_id, 'collector_id' => $user->id]);
+            Notifications::create([
+                'user_id' => $invitation->sender_id,
+                'message' => "{$user->name} accept your collector request",
+                'type'=>'general'
+            ]);
+           
+          
         } else {
             // If the status is 'declined', mark the invitation as declined
-            $invitation->status = 'declined';
-            $invitation->save();
+            // $invitation->status ='declined';
+            // $invitation->save();
+            $invitation->update(['status' => 'declined']);
+            Notifications::create([
+                'user_id' => $invitation->sender_id,
+                'message' => "{$user->name} declined your collector request",
+                'type'=>'general'
+            ]);
         }
 
-        // Return the updated invitation
-        return response()->json(["message"=>"User $invitation->status request"],200);
+         return response()->json(["message"=>"User $invitation->status request"],200);
+       
     }
 }

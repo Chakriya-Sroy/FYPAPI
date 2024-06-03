@@ -12,6 +12,7 @@ use App\Traits\HttpResponse;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class PayableController extends Controller
@@ -54,11 +55,36 @@ class PayableController extends Controller
         if ($supplier->user_id !== Auth::user()->id) {
             return $this->error('', "You don't authorized to create any resource under this supplier", 403);
         }
-        if($request['attachment'] !=null){
-        //   $path= $request['attachment']->storeAs('public',$request['attachment']->getClientOriginalName());
-          $request['attachment']->storeAs('quiz4',$request['attachment']->getClientOriginalName(),'spaces');
-       
+        $path = null;
+     
+        // if($request['attachment'] !=null){
+        //  $request['attachment']->storeAs('public',$request['attachment']->getClientOriginalName());
+        //  $path= $request->file('attachment')->storeAs('',$request['attachment']->getClientOriginalName(),'spaces');
+
+        // }
+        try {
+            // Store the file locally for testing
+            $localPath = $request->file('attachment')->storeAs('public', $request->file('attachment')->getClientOriginalName());
+    
+            // Store the file in DigitalOcean Spaces
+            $fileName = $request->file('attachment')->getClientOriginalName();
+            $spacesPath = $request->file('attachment')->storeAs('', $fileName, 'spaces');
+    
+            if ($spacesPath) {
+                // File was successfully uploaded to Spaces
+                Log::info('File successfully uploaded to Spaces.', ['path' => $spacesPath]);
+                $path = $spacesPath;
+            } else {
+                // Failed to upload the file to Spaces
+                Log::error('Failed to upload file to Spaces.');
+                $path = false;
+            }
+        } catch (\Exception $e) {
+            Log::error('Error uploading file to Spaces: ' . $e->getMessage());
+            $path = false;
         }
+  
+      
         $payable = Payable::create([
             'supplier_id' => $request->supplier_id,
             'amount' => $request->amount,
@@ -67,11 +93,11 @@ class PayableController extends Controller
             'status' => "outstanding",
             'date' => now(),
             'dueDate' => $request->dueDate,
-            'attachment' => $request->attachment =='' ? '' : "https://testfyp1.sgp1.cdn.digitaloceanspaces.com/quiz4/{$request['attachment']->getClientOriginalName()}",
+            'attachment' => $request->attachment == '' ? '' : $path,
             'remark' => $request->remark,
         ]);
-        // For Storing image
-       
+        // // For Storing image
+
         $transaction = PayableTransaction::create([
             'transaction_type' => "payable",
             'amount' => $payable->amount,
@@ -80,6 +106,7 @@ class PayableController extends Controller
             'transaction_date' => $payable->date,
         ]);
         return $this->success(new PayableResource($payable), 'The payable create successfully');
+     
     }
 
     /**
@@ -165,7 +192,7 @@ class PayableController extends Controller
                             'supplier' => $payable->supplier->fullname,
                             'remaining' => $payable->remaining,
                             'status' => $payable->status,
-                            'upcoming' => "Due in $daysUntilReminder days"
+                            'upcoming' => $daysUntilReminder == 1 ? 'Due tomorrow' : ($daysUntilReminder == 0 ? 'Due today' : "Due in $daysUntilReminder days")
                         ];
                     }
                 }

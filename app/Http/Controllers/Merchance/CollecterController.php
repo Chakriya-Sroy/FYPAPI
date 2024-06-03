@@ -8,6 +8,7 @@ use App\Http\Resources\CustomerResource;
 use App\Models\Collector;
 use App\Models\Customer;
 use App\Models\CustomerAndCollector;
+use App\Models\Notifications;
 use App\Models\User;
 use App\Traits\HttpResponse;
 use Carbon\Carbon;
@@ -177,6 +178,12 @@ class CollecterController extends Controller
         }
         // Step 4 Assign customer to collector
         CustomerAndCollector::create(['collector_id' => $collector->id, 'customer_id' => $customer->id]);
+        
+        Notifications::create([
+            'user_id' => $collector->id,
+            'message' => "New customer has been assigned by the merchant",
+            'type'=>"general"
+        ]);
         return $this->success($customer, 'Customer has been assign to collector successfully');
     }
 
@@ -211,6 +218,12 @@ class CollecterController extends Controller
         CustomerAndCollector::where('collector_id', $collector->id)
             ->where('customer_id', $customer->id)
             ->delete();
+
+        Notifications::create([
+                'user_id' => $collector->id,
+                'message' => "The customer has been unassigned by the merchant",
+                'type'=>"general"
+            ]);
         return $this->success($customer, 'Customer has been unassigned from the collector successfully');
     }
     private function checkUserHasCollector()

@@ -44,10 +44,8 @@ class ReceivableController extends Controller
         }
         return $this->success(
             [
-                "receivables" => ReceivableResource::collection($receivables),
-                "assignReceivable" => $assginReceivable
+                "receivables" => ReceivableResource::collection($receivables)
             ],
-            ''
         );
     }
 
@@ -190,12 +188,13 @@ class ReceivableController extends Controller
                         // Ensure daysUntilReminder is positive
                         if ($daysUntilReminder > 0) {
                             // Prepare the upcoming receivables data
+                            
                             $upcomingReceivables[] = [
                                 'id' => $receivable->id,
                                 'customer' => $receivable->customer->fullname,
                                 'remaining' => $receivable->remaining,
                                 'status' => $receivable->status,
-                                'upcoming' => "Due in $daysUntilReminder days"
+                                'upcoming' =>  $daysUntilReminder == 1 ? 'Due tomorrow' : ($daysUntilReminder == 0 ? 'Due today' : "Due in $daysUntilReminder days")
                             ];
                         }
                     }

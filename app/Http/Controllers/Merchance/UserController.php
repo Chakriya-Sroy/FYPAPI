@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Merchance;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\Invitation;
+use App\Models\Notifications;
 use App\Models\User;
 use App\Traits\HttpResponse;
 use Illuminate\Http\Request;
@@ -20,8 +22,29 @@ class UserController extends Controller
     public function index()
     {
         //
-        $user =Auth::user();
-        return UserResource::collection(User::where("id",$user->id)->get());
+        $user = Auth::user();
+        return UserResource::collection(User::where("id", $user->id)->get());
+    }
+
+    public function notification()
+    {
+        $user = Auth::user();
+        // return Notifications::where('user_id', $user->id)
+        // ->orderBy('created_at', 'desc')
+        // ->get();
+        $notifications = Notifications::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        //Filter out notifications of type 'general' if their associated invitation's status is not 'pending'
+        $filteredNotifications = $notifications->filter(function ($notification) {
+            if ($notification->type != 'general') {
+                $invitation = Invitation::where('id', $notification->invitation_id)->first();
+                return $invitation && $invitation->status == 'pending';
+            }
+            return true;
+        });
+        return $filteredNotifications;
     }
 
     /**
@@ -44,11 +67,11 @@ class UserController extends Controller
      * Display the specified resource.
      */
     public function show(User $user)
-    { 
-        if(Auth::user()->id !== $user->id){
-            return $this->error('',"You not authorized to view the resource");
+    {
+        if (Auth::user()->id !== $user->id) {
+            return $this->error('', "You not authorized to view the resource");
         }
-        return UserResource::collection(User::where("id",Auth::user()->id)->get());
+        return UserResource::collection(User::where("id", Auth::user()->id)->get());
     }
 
     /**

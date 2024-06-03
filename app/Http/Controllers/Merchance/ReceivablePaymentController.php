@@ -8,6 +8,7 @@ use App\Http\Resources\ReceivablePaymentResource;
 use App\Models\Collector;
 use App\Models\Customer;
 use App\Models\CustomerAndCollector;
+use App\Models\Notifications;
 use App\Models\Receivable;
 use App\Models\ReceivablePayment;
 use App\Models\ReceivableTransaction;
@@ -109,7 +110,12 @@ class ReceivablePaymentController extends Controller
         if($user->id == $receivable->customer->user_id){
             $notification ="The payment update by owner";
         }else{
-            $notification="The payment update by collector";
+            $notification="Payment update, {$user->name} updated {$receivable->customer->fullname}'s receivable  by {$payment->amount}";
+            Notifications::create([
+                'user_id' => $receivable->customer->user_id,
+                'message' => $notification,
+                'type'=>'general'
+            ]);
         }
         return $this->success([new ReceivablePaymentResource($payment),$notification],"The payment update successfully");
 

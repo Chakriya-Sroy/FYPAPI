@@ -46,13 +46,9 @@ Route::post('/login', [AuthenticatedSessionController::class, 'store'])
 Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
                 ->middleware('guest')
                 ->name('password.email');
-                
-Route::post('/reset-password', [NewPasswordController::class, 'store'])
-                ->middleware('guest')
-                ->name('password.store');
-                
+                                
 Route::get('/auth/google', [GoogleLogin::class, 'redirectToGoogle'])->middleware('guest');
-Route::get('/auth/google/callback', [GoogleLogin::class, 'handleGoogleCallback'])->middleware('guest');
+Route::get('/auth/google/callback', [GoogleLogin::class, 'handleGoogleCallback']);
 
 
 Route::middleware(['auth:sanctum'])->group(function(){
@@ -62,6 +58,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::get("user/assign/customers",[CollecterController::class,'viewAssignCustomer'])->name('customer.assign.to.user.as.collector');
     Route::get("user/assign/receivables",[CollecterController::class,'viewtotalReceivableofAssignCustomer'])->name('view.assign.customer.recievable');
     Route::get("user/assign/upcoming/receivables",[CollecterController::class,'getUpcomingAssignReceivableofAssignCustomer'])->name('get.upcoming.assign.receivables.ofcustomer');
+    Route::get('user/notifications',[UserController::class,'notification'])->name('user.notification');
     Route::get('/user/receivables/upcoming',[ReceivableController::class,'upcoming'])->name('upcoming.receivable');
     Route::get('/user/receivables/overdue',[ReceivableController::class,'overdue'])->name('upcoming.receivable');
     Route::get('/user/payables/upcoming',[PayableController::class,'upcoming'])->name('upcoming.receivable');
