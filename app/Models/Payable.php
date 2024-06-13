@@ -11,7 +11,7 @@ class Payable extends Model
 {
     use HasFactory;
     protected $table='payables';
-    protected $fillable=['supplier_id','amount','remaining','date','dueDate','status','payment_term','remark','attachment'];
+    protected $fillable=['supplier_id','amount','remaining','date','dueDate','status','payment_term','remark','attachment','isArchive'];
     
     public function supplier():BelongsTo{
         return $this->belongsTo(Supplier::class);

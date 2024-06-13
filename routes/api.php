@@ -76,10 +76,10 @@ Route::middleware(['auth:sanctum'])->group(function(){
         Route::prefix('/receivable')->group(function() {
             Route::get('/list', [ReceivableController::class,'index'])->name("customer.receivable.list");
             Route::post('/create',[ReceivableController::class,'store'])->name("customer.receivable.create");
-            Route::patch('/update/{id}', [ReceivableController::class,'update'])->name("customer.receivable.update");
+            // Route::patch('/update/{id}', [ReceivableController::class,'update'])->name("customer.receivable.update");
             Route::get('/view/{id}', [ReceivableController::class,'show'])->name("customer.receivable.view");
             Route::delete('/delete/{id}', [ReceivableController::class,'destroy'])->name("customer.receivable.delete");
-           
+            Route::patch('/archive/{id}',[ReceivableController::class,'update'])->name('customer.receivable.archive');
         });
         Route::prefix('receivable/payment')->group(function() {
             Route::post('/create', [ReceivablePaymentController::class, 'store'])->name('receivables.payments.store');
@@ -100,6 +100,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
             Route::get('/list',[PayableController::class,'index'])->name('supplier.payable.list');
             Route::post('/create',[PayableController::class,'store'])->name('supplier.payable.store');
             Route::get('/view/{id}',[PayableController::class,'show'])->name('supplier.payable.view');
+            Route::patch('/archive/{id}',[PayableController::class,'update'])->name('suplier.payable.archieve');
         });
         Route::prefix('payable/payment')->group(function() {
             Route::post('/create', [PayablePaymentController::class, 'store'])->name('payables.payments.store');

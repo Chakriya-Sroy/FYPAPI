@@ -25,5 +25,5 @@ require __DIR__.'/auth.php';
 //     return view('reset_password');
 // })->name('reset-password');
 
-Route::get('/reset-password/{token}/{expireIn}',[PasswordResetLinkController::class,'resetPasswordLoad'])->name('reset-password-view');
+Route::get('/reset-password/{token}',[PasswordResetLinkController::class,'resetPasswordLoad'])->name('reset-password-view');
 Route::post('/reset-password', [NewPasswordController::class, 'store'])->middleware('guest')->name('password.store');

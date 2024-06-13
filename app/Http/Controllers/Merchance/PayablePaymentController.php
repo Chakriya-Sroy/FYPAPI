@@ -32,18 +32,25 @@ class PayablePaymentController extends Controller
         if($request->amount ==0){
             return $this->error('',"The aount enter must be greather than 0");
         }
+
+        $path = null;     
+        if($request->file('attachment') !=null){
+         $request->file('attachment') ->storeAs('public',$request['attachment']->getClientOriginalName());
+         $path= $request->file('attachment')->storeAs('',$request['attachment']->getClientOriginalName(),'spaces');
+        }
         // update payment table
         $payment=PayablePayment::create([
             'amount'=>$request->amount,
             'payable_id'=>$payable->id,
             'date'=>now(),
             'remark'=>$request->remark,
-            'attachment'=>$request->attachment
+            'attachment'=>$request->attachment == '' ? '' : "https://testfyp1.sgp1.cdn.digitaloceanspaces.com/$path" 
        ]);
        $transaction =PayableTransaction::create([
         'transaction_type'=>"payment",
         'amount'=>$payment->amount,
-        'payment_id'=>$payment->id,
+        'payable_id'=>$payable->id,
+        'payableCreated'=>$payable->date,
         'supplier_id'=>$payment->payable->supplier_id,
         'transaction_date'=>$payment->date,
         ]);

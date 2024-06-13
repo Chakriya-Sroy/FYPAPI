@@ -40,21 +40,17 @@ class CustomerResource extends JsonResource
     }
     public function totalRemaining()
     {
-        $totalRemaining = 0;
+        
         $receivables = $this->receivables;
-        foreach ($receivables as $receivable) {
-            $totalRemaining += $receivable->remaining;
-        }
+        $totalRemaining = $receivables->where('isArchive',false)->sum('remaining');
         return $totalRemaining;
 
     }
     public function totalOutstanding()
     {
-        $totalOutstanding = 0;
+       
         $receivables = $this->receivables;
-        foreach ($receivables as $receivable) {
-           $totalOutstanding += $receivable->amount;
-        }
+        $totalOutstanding = $receivables->where('isArchive',false)->sum('amount');
         return $totalOutstanding;
     }
     // public function receivables()

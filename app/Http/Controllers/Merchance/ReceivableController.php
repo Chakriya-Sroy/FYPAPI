@@ -29,24 +29,8 @@ class ReceivableController extends Controller
     public function index()
     {   // Step 1: Get the current user's ID
         $user = Auth::user();
-        // Step 2: Get all customers under the current user & customers that were assign to user
-        $customers = $user->customers;
-        $assignCustomer = CustomerAndCollector::where('collector_id', Auth::user()->id)->get();
-        if ($customers->isEmpty()) {
-            return "There no resource avaialbel yet";
-        }
-        // Step 3: Initialize arrays to store receivables
-        $receivables = $user->receivables->sortByDesc('created_at');
-        $assginReceivable = [];
-        // Step 5: Iterate over each assign customer
-        foreach ($assignCustomer as $customer) {
-            $assginReceivable[] = ReceivableResource::collection(Receivable::where("customer_id", $customer->customer_id)->orderBy('created_at', 'desc')->get());
-        }
-        return $this->success(
-            [
-                "receivables" => ReceivableResource::collection($receivables)
-            ],
-        );
+        $receivables = $user->receivables()->where('isArchive', false)->orderByDesc('created_at')->get();
+        return $this->success(ReceivableResource::collection($receivables));
     }
 
     /**
@@ -70,6 +54,11 @@ class ReceivableController extends Controller
         if ($customer->user_id !== Auth::user()->id) {
             return $this->error('', "You don't authorized to create any resource under this customer", 403);
         }
+        $path = null;     
+        if($request->file('attachment') !=null){
+         $request->file('attachment') ->storeAs('public',$request['attachment']->getClientOriginalName());
+         $path= $request->file('attachment')->storeAs('',$request['attachment']->getClientOriginalName(),'spaces');
+        }
         $receivable = Receivable::create([
             'customer_id' => $request->customer_id,
             'amount' => $request->amount,
@@ -78,11 +67,13 @@ class ReceivableController extends Controller
             'status' => "oustanding",
             'date' => now(),
             'dueDate' => $request->dueDate,
-            'attachment' => $request->attachment,
+            'attachment'=>$request->attachment == '' ? '' :"https://testfyp1.sgp1.cdn.digitaloceanspaces.com/$path",
             'remark' => $request->remark,
+            'isArchive'=>false
         ]);
         $transactions = ReceivableTransaction::create([
             'receivable_id' => $receivable->id,
+            'receivableCreated'=>$receivable->date,
             'amount' => $receivable->amount,
             'transaction_date' => $receivable->date,
             'customer_id' => $receivable->customer_id,
@@ -126,9 +117,16 @@ class ReceivableController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Receivable $receivable)
+    public function update(string $id)
     {
         //
+        $receivable = Receivable::find($id);
+        if ($receivable) {
+            $receivable->update(['isArchive' => true]);
+            return response()->json(['message' => 'Receivable added to archive successfully']);
+        } else {
+            return response()->json(['message' => 'Receivable not found'], 404);
+        }
     }
 
     /**
@@ -167,6 +165,7 @@ class ReceivableController extends Controller
                         if ($daysRemaining === 0 || $daysRemaining === 1) {
                             $upcomingReceivables[] = [
                                 'id' => $receivable->id,
+                                'receivableCreated'=>$receivable->date,
                                 'customer' => $receivable->customer->fullname,
                                 'remaining' => $receivable->remaining,
                                 'status' => $receivable->status,
@@ -191,6 +190,7 @@ class ReceivableController extends Controller
                             
                             $upcomingReceivables[] = [
                                 'id' => $receivable->id,
+                                'receivableCreated'=>$receivable->date,
                                 'customer' => $receivable->customer->fullname,
                                 'remaining' => $receivable->remaining,
                                 'status' => $receivable->status,
@@ -219,6 +219,7 @@ class ReceivableController extends Controller
                         $daysRemaining = $newDueDate->diffInDays($currentDate);
                         $overDueReceivables[] = [
                             'id' => $receivable->id,
+                            'receivableCreated'=>$receivable->date,
                             'customer' => $receivable->customer->fullname,
                             'remaining' => $receivable->remaining,
                             'status' => $receivable->status,
@@ -231,6 +232,7 @@ class ReceivableController extends Controller
                     if ($newDueDate->isBefore($currentDate)) {
                         $overDueReceivables[] = [
                             'id' => $receivable->id,
+                            'receivableCreated'=>$receivable->date,
                             'customer' => $receivable->customer->fullname,
                             'remaining' => $receivable->remaining,
                             'status' => $receivable->status,

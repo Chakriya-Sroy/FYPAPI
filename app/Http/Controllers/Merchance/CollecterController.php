@@ -77,6 +77,7 @@ class CollecterController extends Controller
                         if ($daysRemaining === 0 || $daysRemaining === 1) {
                             $upcomingReceivables[] = [
                                 'id' => $receivable->id,
+                                'receivableCreated'=>$receivable->date,
                                 'customer' => $customer->fullname,
                                 'remaining' => $receivable->remaining,
                                 'status' => $receivable->status,
@@ -100,6 +101,7 @@ class CollecterController extends Controller
                             // Prepare the upcoming receivables data
                             $upcomingReceivables[] = [
                                 'id' => $receivable->id,
+                                'receivableCreated'=>$receivable->date,
                                 'customer' => $customer->fullname,
                                 'remaining' => $receivable->remaining,
                                 'status' => $receivable->status,

@@ -10,7 +10,7 @@ class ReceivableTransaction extends Model
 {
     use HasFactory;
     protected $table="receivable_transactions";
-    protected $fillable=["transaction_type","receivable_id","payment_id","transaction_date","amount","customer_id"];
+    protected $fillable=["transaction_type","receivable_id","receivableCreated","transaction_date","amount","customer_id"];
     
     public function customer():BelongsTo{
         return $this->belongsTo(Customer::class);

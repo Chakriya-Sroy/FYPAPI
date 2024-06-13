@@ -16,10 +16,9 @@ return new class extends Migration
             $table->integer('supplier_id')->unsigned();
             $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('cascade');
             $table->String("transaction_type");
-            $table->unsignedBigInteger('payable_id')->nullable();
+            $table->unsignedBigInteger('payable_id');
+            $table->String('payableCreated');
             $table->foreign('payable_id')->references('id')->on('payables')->onDelete('cascade');
-            $table->unsignedBigInteger('payment_id')->nullable();
-            $table->foreign('payment_id')->references('id')->on('payable_payments')->onDelete('cascade');
             $table->decimal('amount', 10, 2);
             $table->dateTime('transaction_date');
             $table->timestamps();

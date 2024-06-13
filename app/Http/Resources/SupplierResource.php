@@ -38,19 +38,15 @@ class SupplierResource extends JsonResource
         ];
     }
     public function totalRemaining(){
-        $totalRemaining=0;
+        
         $payables=$this->payables;
-        foreach($payables as $payable){
-             $totalRemaining +=$payable->remaining;
-        }
+        $totalRemaining=$payables->where('isArchive',false)->sum('remaining');
         return $totalRemaining;
     }
     public function totalOutstanding(){
-        $totalOutstanding=0;
+       
         $payables=$this->payables;
-        foreach($payables as $payable){
-             $totalOutstanding +=$payable->amount;
-        }
+        $totalOutstanding=$payables->where('isArchive',false)->sum('amount');
         return $totalOutstanding;
     }
     // public function payables(){

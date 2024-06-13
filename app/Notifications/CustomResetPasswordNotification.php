@@ -19,7 +19,6 @@ class CustomResetPasswordNotification extends Notification
     {
         $this->token = $token;
        
-        $this->expireIn = Carbon::now()->utc()->addMinutes(2);
     }
 
     /**
@@ -38,11 +37,10 @@ class CustomResetPasswordNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-                    ->subject('Your Custom Reset Password Subject')
+                    ->subject('Password Reset')
                     ->greeting('Hello!')
                     ->line('You are receiving this email because we received a password reset request for your account.')
-                    ->action('Reset Password', url(config('app.url').route('reset-password-view', [$this->token,$this->expireIn], false)))
-                    ->line('This password reset link will expire in 1 minutes.')
+                    ->action('Reset Password', url(config('app.url').route('reset-password-view',$this->token, false)))
                     ->line('If you did not request a password reset, no further action is required.')
                     ->salutation('Regards, Your Application');
     }

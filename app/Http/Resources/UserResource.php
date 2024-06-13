@@ -77,36 +77,22 @@ class UserResource extends JsonResource
     }
     public function totalReceivableOutstanding(){
         $receivables=$this->receivables;
-        $total=0;
-        foreach($receivables as $receivable){
-            $total+=$receivable->amount;
-           
-        }
+        $total=$receivables->where('isArchive',false)->sum('amount');
         return $total;
     }
     public function totalReceivableRemining(){
         $receivables=$this->receivables;
-        $remaining=0;
-        foreach($receivables as $receivable){
-            $remaining+=$receivable->remaining;
-        }
+        $remaining=$receivables->where('isArchive',false)->sum('remaining');
         return $remaining;
     }
     public function totalPayableOutstanding(){
         $payables=$this->payables;
-        $total=0;
-        foreach($payables as $payable){
-            $total+=$payable->amount;
-           
-        }
+        $total = $payables->where('isArchive', false)->sum('amount');
         return $total;
     }
     public function totalPayableRemining(){
         $payables=$this->payables;
-        $remaining=0;
-        foreach($payables as $payable){
-            $remaining+=$payable->remaining;
-        }
+        $remaining=$payables->where('isArchive',false)->sum('remaining');
         return $remaining;
     }
 }

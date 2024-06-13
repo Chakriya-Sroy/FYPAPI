@@ -25,7 +25,7 @@ class PayableController extends Controller
     {
         //
         $user = Auth::user();
-        $payables = $user->payables->sortByDesc('created_at');
+        $payables = $user->payables()->where('isArchive', false)->orderByDesc('created_at')->get();
         // if ($payables->count() == 0) {
         //     return response()->json("There no resource available yet", 200);
         // }
@@ -55,36 +55,35 @@ class PayableController extends Controller
         if ($supplier->user_id !== Auth::user()->id) {
             return $this->error('', "You don't authorized to create any resource under this supplier", 403);
         }
-        $path = null;
-     
-        // if($request['attachment'] !=null){
-        //  $request['attachment']->storeAs('public',$request['attachment']->getClientOriginalName());
-        //  $path= $request->file('attachment')->storeAs('',$request['attachment']->getClientOriginalName(),'spaces');
 
-        // }
-        try {
-            // Store the file locally for testing
-            $localPath = $request->file('attachment')->storeAs('public', $request->file('attachment')->getClientOriginalName());
-    
-            // Store the file in DigitalOcean Spaces
-            $fileName = $request->file('attachment')->getClientOriginalName();
-            $spacesPath = $request->file('attachment')->storeAs('', $fileName, 'spaces');
-    
-            if ($spacesPath) {
-                // File was successfully uploaded to Spaces
-                Log::info('File successfully uploaded to Spaces.', ['path' => $spacesPath]);
-                $path = $spacesPath;
-            } else {
-                // Failed to upload the file to Spaces
-                Log::error('Failed to upload file to Spaces.');
-                $path = false;
-            }
-        } catch (\Exception $e) {
-            Log::error('Error uploading file to Spaces: ' . $e->getMessage());
-            $path = false;
+        $path = null;
+        if ($request->file('attachment') != null) {
+            $request->file('attachment')->storeAs('public', $request['attachment']->getClientOriginalName());
+            $path = $request->file('attachment')->storeAs('', $request['attachment']->getClientOriginalName(), 'spaces');
         }
-  
-      
+        // try {
+        //     // Store the file locally for testing
+        //     $localPath = $request->file('attachment')->storeAs('public', $request->file('attachment')->getClientOriginalName());
+
+        //     // Store the file in DigitalOcean Spaces
+        //     $fileName = $request->file('attachment')->getClientOriginalName();
+        //     $spacesPath = $request->file('attachment')->storeAs('', $fileName, 'spaces');
+
+        //     if ($spacesPath) {
+        //         // File was successfully uploaded to Spaces
+        //         Log::info('File successfully uploaded to Spaces.', ['path' => $spacesPath]);
+        //         $path = $spacesPath;
+        //     } else {
+        //         // Failed to upload the file to Spaces
+        //         Log::error('Failed to upload file to Spaces.');
+        //         $path = false;
+        //     }
+        // } catch (\Exception $e) {
+        //     Log::error('Error uploading file to Spaces: ' . $e->getMessage());
+        //     $path = false;
+        // }
+
+
         $payable = Payable::create([
             'supplier_id' => $request->supplier_id,
             'amount' => $request->amount,
@@ -93,8 +92,9 @@ class PayableController extends Controller
             'status' => "outstanding",
             'date' => now(),
             'dueDate' => $request->dueDate,
-            'attachment' => $request->attachment == '' ? '' : $path,
+            'attachment' => $request->attachment == '' ? '' : "https://testfyp1.sgp1.cdn.digitaloceanspaces.com/$path",
             'remark' => $request->remark,
+            'isArchive'=>false
         ]);
         // // For Storing image
 
@@ -102,11 +102,11 @@ class PayableController extends Controller
             'transaction_type' => "payable",
             'amount' => $payable->amount,
             'payable_id' => $payable->id,
+            'payableCreated' => $payable->date,
             'supplier_id' => $payable->supplier_id,
             'transaction_date' => $payable->date,
         ]);
         return $this->success(new PayableResource($payable), 'The payable create successfully');
-     
     }
 
     /**
@@ -136,9 +136,15 @@ class PayableController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(string $id)
     {
-        //
+        $payable = Payable::find($id);
+        if ($payable) {
+            $payable->update(['isArchive' => true]);
+            return response()->json(['message' => 'Payable added to archive successfully']);
+        } else {
+            return response()->json(['message' => 'Payable not found'], 404);
+        }
     }
 
     /**
@@ -173,6 +179,7 @@ class PayableController extends Controller
                         if ($daysRemaining === 0 || $daysRemaining === 1) {
                             $upcomingPayables[] = [
                                 'id' => $payable->id,
+                                'payableCreated' => $payable->date,
                                 'supplier' => $payable->supplier->fullname,
                                 'remaining' => $payable->remaining,
                                 'status' => $payable->status,
@@ -189,6 +196,7 @@ class PayableController extends Controller
                         $daysUntilReminder = $nextReminderDate->diffInDays($currentDate);
                         $upcomingReceivables[] = [
                             'id' => $payable->id,
+                            'payableCreated' => $payable->date,
                             'supplier' => $payable->supplier->fullname,
                             'remaining' => $payable->remaining,
                             'status' => $payable->status,
@@ -215,6 +223,7 @@ class PayableController extends Controller
                         $daysRemaining = $newDueDate->diffInDays($currentDate);
                         $overDuePayables[] = [
                             'id' => $payable->id,
+                            'payableCreated' => $payable->date,
                             'supplier' => $payable->supplier->fullname,
                             'remaining' => $payable->remaining,
                             'status' => $payable->status,
@@ -227,6 +236,7 @@ class PayableController extends Controller
                     if ($newDueDate->isBefore($currentDate)) {
                         $overDuePayables[] = [
                             'id' => $payable->id,
+                            'payableCreated' => $payable->date,
                             'supplier' => $payable->supplier->fullname,
                             'remaining' => $payable->remaining,
                             'status' => $payable->status,

@@ -24,6 +24,7 @@ return new class extends Migration
             $table->dateTime("dueDate");
             $table->String("remark")->nullable();
             $table->String("attachment")->nullable();
+            $table->boolean('isArchive');
             $table->timestamps();
         });
     }

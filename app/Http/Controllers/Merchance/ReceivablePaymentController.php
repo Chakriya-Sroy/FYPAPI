@@ -79,20 +79,27 @@ class ReceivablePaymentController extends Controller
         elseif($request->amount ==0){
             return $this->error('',"The amount can't be zero",200);
         }
+        
+        $path = null;     
+        if($request->file('attachment') !=null){
+         $request->file('attachment') ->storeAs('public',$request['attachment']->getClientOriginalName());
+         $path= $request->file('attachment')->storeAs('',$request['attachment']->getClientOriginalName(),'spaces');
+        }
         $payment=ReceivablePayment::create([
               'amount'=>$request->amount,
               'user_id'=>Auth::user()->id,
               'receivable_id'=>$receivable->id,
               'date'=>now(),
               'remark'=>$request->remark,
-              'attachment'=>$request->attachment
+              'attachment'=>$request->attachment == '' ? '' :"https://testfyp1.sgp1.cdn.digitaloceanspaces.com/$path" 
         ]);
         $transactions = ReceivableTransaction::create([
-            'payable_id'=>$payment->id,
+            'receivable_id'=>$receivable->id,
+            'receivableCreated'=>$receivable->date,
             'amount'=>$payment->amount,
             'transaction_date'=>$payment->date,
             'customer_id'=>$payment->receivable->customer_id,
-            'transaction_type'=>'payable'
+            'transaction_type'=>'payment'
           ]);
         $requestAmount = (double) $request->amount;
         $newRemaining = max(0, $receivable->remaining - $requestAmount);
