@@ -36,9 +36,11 @@ class ReceivableController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function archive()
     {
-        //
+        $user = Auth::user();
+        $receivables = $user->receivables()->where('isArchive', true)->orderByDesc('created_at')->get();
+        return $this->success(ReceivableResource::collection($receivables));
     }
 
     /**

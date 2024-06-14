@@ -37,9 +37,16 @@ class PayableController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function archive()
     {
-        //
+        $user = Auth::user();
+        $payables = $user->payables()->where('isArchive', true)->orderByDesc('created_at')->get();
+        // if ($payables->count() == 0) {
+        //     return response()->json("There no resource available yet", 200);
+        // }
+        //return $this->success(['attributes'=>$payables]);
+        //return $payables;
+        return $this->success(PayableResource::collection($payables));
     }
 
     /**
