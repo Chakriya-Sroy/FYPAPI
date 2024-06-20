@@ -13,10 +13,10 @@ return new class extends Migration
     {
          Schema::create('collectors', function (Blueprint $table) {
             $table->id();
-            $table->foreign('user_id')->references('id')->on('user')->onDelete('cascade'); // user_id
-            $table->integer('user_id')->unsigned();
-            $table->foreign('collector_id')->references('id')->on('user')->onDelete('cascade'); // collector_id
-            $table->integer('collector_id')->unsigned();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade'); // user_id
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('collector_id')->references('id')->on('users')->onDelete('cascade'); // collector_id
+            $table->unsignedBigInteger('collector_id');
             $table->timestamps();
         });
     }

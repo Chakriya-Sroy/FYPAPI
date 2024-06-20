@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,3 +29,5 @@ require __DIR__.'/auth.php';
 
 Route::get('/reset-password/{token}',[PasswordResetLinkController::class,'resetPasswordLoad'])->name('reset-password-view');
 Route::post('/reset-password', [NewPasswordController::class, 'store'])->middleware('guest')->name('password.store');
+Route::get('/verify/{token}',[RegisteredUserController::class,'verifyEmail'])->name('verify-email');
+Route::post('/updateEmailVerify',[RegisteredUserController::class,'updateEmailVerifiedAt'])->name('update-verify-email');

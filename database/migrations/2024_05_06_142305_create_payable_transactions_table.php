@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('payable_transactions', function (Blueprint $table) {
             $table->id();
-            $table->integer('supplier_id')->unsigned();
+            $table->unsignedBigInteger('supplier_id');
             $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('cascade');
             $table->String("transaction_type");
             $table->unsignedBigInteger('payable_id');

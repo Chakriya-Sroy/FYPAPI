@@ -29,4 +29,6 @@ class VerifyEmailController extends Controller
             config('app.frontend_url').RouteServiceProvider::HOME.'?verified=1'
         );
     }
+    
+
 }

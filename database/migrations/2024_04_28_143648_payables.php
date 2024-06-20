@@ -14,7 +14,7 @@ return new class extends Migration
         //
         Schema::create('payables', function (Blueprint $table) {
             $table->id();
-            $table->integer('supplier_id')->unsigned();
+            $table->unsignedBigInteger('supplier_id');
             $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('cascade'); // if the customer is deleted, all the receivable also gone
             $table->double("amount");
             $table->double("remaining");

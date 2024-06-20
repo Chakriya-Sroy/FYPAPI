@@ -9,7 +9,7 @@ return new class extends Migration
     {
         Schema::create('receivables', function (Blueprint $table) {
             $table->id();
-            $table->integer('customer_id')->unsigned();
+            $table->unsignedBigInteger('customer_id');
             $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade'); // if the customer is deleted, all the receivable also gone
             $table->double("amount");
             $table->double("remaining");

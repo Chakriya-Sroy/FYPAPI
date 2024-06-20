@@ -74,6 +74,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
         Route::get('transaction/{id}',[CustomerController::class,'transaction'])->name("customer.transaction");
 
         Route::prefix('/receivable')->group(function() {
+            Route::get('/assign/list',[ReceivableController::class,'assign']);
             Route::get('/archive/list',[ReceivableController::class,'archive']);
             Route::get('/list', [ReceivableController::class,'index'])->name("customer.receivable.list");
             Route::post('/create',[ReceivableController::class,'store'])->name("customer.receivable.create");

@@ -44,15 +44,33 @@ class SupplierController extends Controller
         $subscription=$user->subscription;
         if(!$subscription){
             // check if the customer exceed the 5
-            if($user->suppliers->count() > 5){
-                return $this->error("","Opp, You already exceed the allow customers,Please subscription to Premium plan");
+            if($user->suppliers->count() >= 5){
+                return $this->error("","Opp, You already exceed the allow suppliers,Please subscription to Premium plan");
             }
+            $supplier=Supplier::create(
+                [
+                    'fullname' => $request->fullname,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                    'address' => $request->address,
+                    'remark' => $request->remark,
+                    "user_id"=>Auth::user()->id,
+                ]
+            );
+            return $this->success(new SupplierResource($supplier),'New Supplier create succesfully');
         }
-        else{
-            if(!$subscription->active && now()->isAfter($subscription->end)){
-                return $this->error("","Please renew the plan to enjoy unlimited");
-            }
+        // else{
+        //     if(!$subscription->active && now()->isAfter($subscription->end)){
+        //         return $this->error("","Please renew the plan to enjoy unlimited");
+        //     }
+        // }
+        if (!$subscription->active && now()->isAfter($subscription->end)) {
+            return $this->error("", "Please renew the plan to enjoy unlimited suppliers.");
         }
+
+        if($user->suppliers->count()>=15){
+            return $this->error("", "Oops, you have already exceeded the allowed number of suppliers.");
+        }  
         $supplier=Supplier::create(
             [
                 'fullname' => $request->fullname,

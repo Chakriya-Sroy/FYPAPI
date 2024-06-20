@@ -20,13 +20,18 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
         $user=$request->user();
-        $user->tokens()->delete();
-        $token=$user->createToken("api-token")->plainTextToken;
-        return response()->json([
+
+        if($user->email_verified_at !=null){
+            $user->tokens()->delete();
+            $token=$user->createToken("api-token")->plainTextToken;
+            return response()->json([
             'user'=>$user,
             'token'=>$token,
             'message'=>'Login Successfully'
-        ]);
+            ]);
+        }
+        return $this->error('',"Email not verify");
+       
     }
 
     /**

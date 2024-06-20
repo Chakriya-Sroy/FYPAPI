@@ -14,9 +14,9 @@ return new class extends Migration
         //
         Schema::create('collector_customer',function(Blueprint $table){
             $table->id();
-            $table->integer('collector_id')->unsigned();
-            $table->foreign('collector_id')->references('id')->on('collectors')->onDelete('cascade'); 
-            $table->integer('customer_id')->unsigned();
+            $table->unsignedBigInteger('collector_id');
+            $table->foreign('collector_id')->references('collector_id')->on('collectors')->onDelete('cascade'); 
+            $table->unsignedBigInteger('customer_id');
             $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade'); 
             $table->timestamps();
         });

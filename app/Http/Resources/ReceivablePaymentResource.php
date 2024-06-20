@@ -22,6 +22,7 @@ class ReceivablePaymentResource extends JsonResource
               'user_id'=>$this->user_id,
               'receivable_id'=>$this->receivable->id,
               'date'=>$this->date,
+              'isArchive'=>$this->isArchive,
               'attachment'=>$this->attachment,
               'created_at'=>$this->created_at,
               'updated_at'=>$this->updated_at

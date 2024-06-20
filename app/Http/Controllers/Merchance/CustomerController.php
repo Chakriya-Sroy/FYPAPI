@@ -18,7 +18,7 @@ use App\Traits\HasCollectorRole;
 
 class CustomerController extends Controller
 {
-    use HttpResponse,HasCollectorRole;
+    use HttpResponse;
     /**
      * Display a listing of the resource.
      */
@@ -49,12 +49,14 @@ class CustomerController extends Controller
             if ($user->customers->count() >= 5) {  // Changed > to >= to properly limit to 5 customers
                 return $this->error("", "Oops, you have already exceeded the allowed number of customers. Please subscribe to the Premium plan.");
             }
-        } else {
-            // Check if the subscription is inactive and has ended
-            if (!$subscription->active && now()->isAfter($subscription->end)) {
-                return $this->error("", "Please renew the plan to enjoy unlimited customers.");
-            }
         }
+        if (!$subscription->active && now()->isAfter($subscription->end)) {
+            return $this->error("", "Please renew the plan to enjoy unlimited customers.");
+        }
+
+        if($user->customers->count()>=15){
+            return $this->error("", "Oops, you have already exceeded the allowed number of customers.");
+        }  
         $customer = Customer::create([
             'fullname' => $request->fullname,
             'gender' => $request->gender,
@@ -65,6 +67,7 @@ class CustomerController extends Controller
             'user_id' => Auth::user()->id
         ]);
         return $this->success(new CustomerResource($customer), "New Customer Create Successfully");
+       
     }
 
     /**
@@ -76,23 +79,17 @@ class CustomerController extends Controller
         if(!$customer){
             return $this->error('','There no available resource ');
         }
-        $collectorInfo = $this->hasCollectorRole();
-        $collectorId = $collectorInfo["collectorId"];
-        $isCollector = $collectorInfo["isCollector"];
+        // $collectorInfo = $this->hasCollectorRole();
+        // $collectorId = $collectorInfo["collectorId"];
+        // $isCollector = $collectorInfo["isCollector"];
         //Step 1: check if the user has collector authroization to view the resource or not
         if(Auth::user()->id == $customer->user_id){
             return new CustomerResource($customer);
         }
         //Step 2 : Check if the current user has authorized to view the resource or not
-        if ($isCollector) {
-            //  Check if the user that being request to view and user has relationship with each other or not
-            $target_customer = CustomerAndCollector::where('customer_id', $customer->id)
-            ->where('collector_id', $collectorId)
-            ->get();
-            if($target_customer->count()>0){
-                return new CustomerResource($customer);
-            }
-            return $this->error('','You are not authorized to view this resource');
+        $isCollector = CustomerAndCollector::where('customer_id', $customer->id)->where('collector_id',Auth::user()->id)->exists();
+        if ($isCollector) {    
+            return new CustomerResource($customer);
         }
         
         return $this->error('', 'You are not authorized to view this resource', 401);

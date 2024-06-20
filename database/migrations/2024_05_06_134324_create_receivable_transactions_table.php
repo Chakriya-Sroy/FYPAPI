@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('receivable_transactions', function (Blueprint $table) {
             $table->id();
-            $table->integer('customer_id')->unsigned();
+            $table->unsignedBigInteger('customer_id');
             $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');
             $table->String("transaction_type");
             $table->unsignedBigInteger('receivable_id');

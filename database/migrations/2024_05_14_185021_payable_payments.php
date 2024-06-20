@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('payable_payments', function (Blueprint $table) {
             $table->id();
-            $table->integer('payable_id')->unsigned();
+            $table->unsignedBigInteger('payable_id');
             $table->foreign('payable_id')->references('id')->on('payables')->onDelete('cascade'); // if the customer is deleted, all the receivable also gone
             $table->double("amount");
             $table->dateTime("date");
